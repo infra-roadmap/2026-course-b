@@ -14,7 +14,7 @@
     <span class="course-badge b">SAA取得を目指さない</span>
     <a class="back-index" href="index.html">← 目次（全7ヶ月）へ戻る</a>
     <div class="nav-group-label">10月｜OCIネットワーク</div>
-    <nav><a href="#w1"><span class="dot"></span>CIDR設計</a><a href="#w2"><span class="dot"></span>Subnet設計</a><a href="#w3"><span class="dot"></span>NSG・Route Table</a><a href="#w4"><span class="dot"></span>IGW・NAT Gateway（任意）</a></nav>
+    <nav><a href="#w1"><span class="dot"></span>CIDR設計</a><a href="#w2"><span class="dot"></span>Subnet設計</a><a href="#w3"><span class="dot"></span>NSG・Route Table</a><a href="#w4"><span class="dot"></span>Internet Gateway</a></nav>
     <div class="prevnext"><a href="2026-09.html">← 9月</a><a href="2026-11.html">11月 →</a></div>
     <div class="nav-group-label">全体の月一覧</div>
     <nav class="month-nav"><a href="2026-09.html"><span class="dot"></span>9月｜OCI基礎</a><a href="2026-10.html" class="current"><span class="dot"></span>10月｜OCIネットワーク</a><a href="2026-11.html"><span class="dot"></span>11月｜Terraform入門</a><a href="2026-12.html"><span class="dot"></span>12月｜Terraform実践</a><a href="2027-01.html"><span class="dot"></span>1月｜Terraform総合演習①</a><a href="2027-02.html"><span class="dot"></span>2月｜Terraform総合演習②</a><a href="2027-03.html"><span class="dot"></span>3月｜Terraform実務設計</a></nav>
@@ -25,13 +25,13 @@
       <h1>10月：OCIネットワーク</h1>
       <p class="sub">コースB：OCI限定コース（AWS資格を目指さない）</p>
       <p class="lead">ネットワークの基礎（CIDR、Subnet、NSG、ルーティング）を学び、実際にインターネットへ出られるネットワークを構築します。AWS資格は目指さないため、その分OCI側の理解を深めます。</p>
-      <p class="practical"><b>💼 この月で実務的にできるようになること：</b>CIDR設計をもとにVCN・Public/Private Subnet・NSG・Route Tableまでを、Always Free枠の範囲内で設計から構築まで担当できるようになります。あわせて、Private SubnetからのアウトバウンドをNAT Gateway経由で許可する構成についても理解します（NAT GatewayはAlways Free対象外のため、実機構築は任意・課金注意の発展演習として扱います）。</p>
+      <p class="practical"><b>💼 この月で実務的にできるようになること：</b>CIDR設計をもとにVCN・Public/Private Subnet・NSG・Route Tableまでを、Always Free枠の範囲内で設計から構築まで担当できるようになります。あわせて、Private SubnetからのアウトバウンドをNAT Gateway経由で許可する構成について、その役割・仕組み・Route Tableとの関係を理解します（NAT GatewayはAlways Free対象外のため、このロードマップでは実機構築は行わず、概念・設計の理解にとどめます）。</p>
     </div>
 
     <h2 class="section-title" id="glossary">📖 この月で出てくる用語</h2>
     <table class="glossary">
       <tr><th style="width:14%">用語</th><th style="width:28%">ひとことで言うと</th><th>もう少し詳しく</th></tr>
-      <tr><td class="term">CIDR</td><td class="short">ネットワークの「番地」の表し方</td><td>例：10.0.0.0/16。「/16」の数字が大きいほど範囲が狭くなる</td></tr><tr><td class="term">パブリック／プライベートSubnet</td><td class="short">VNICにパブリックIPを割り当てられる区画／割り当てない区画</td><td>Subnetは作成時にPublic SubnetまたはPrivate Subnetとして指定する。Public SubnetではVNICにパブリックIPを割り当てることができ、Private SubnetではVNICにパブリックIPを割り当てない（インターネットから直接アクセスさせない用途で使う）。Route Tableは「Subnetからどこへ通信を転送するか」を定義するものであり、Public/Privateの区分そのものを決めるものではない点に注意（Internet GatewayやNAT Gatewayへの経路をRoute Tableで設定する）</td></tr><tr><td class="term">NSG（Network Security Group）</td><td class="short">VNICに適用する通信の許可ルール</td><td>VNICに適用して「どのポート番号を」「どこからのアクセスに対して」開けるかを制御する仕組み。同様の制御はSecurity Listでも可能で、NSGは必須ではないが、本ロードマップではNSGを使って学習する。外部と通信できるかどうかは、NSGだけでなくSubnet・Route Table・Internet Gateway等のネットワーク構成とセキュリティルール全体によって決まる</td></tr><tr><td class="term">ルートテーブル</td><td class="short">通信の行き先を決める地図</td><td>「このIP範囲宛の通信はここへ送る」というルールの一覧</td></tr><tr><td class="term">インターネットゲートウェイ</td><td class="short">VCNとインターネットの出入口</td><td>Public SubnetからInternet Gateway経由でインターネットと直接通信するために、Route Tableにこれへの経路を設定する。NAT GatewayやService Gatewayなど、目的に応じた別の出口もある</td></tr><tr><td class="term">NATゲートウェイ</td><td class="short">Private Subnetから「出るだけ」を許可する仕組み</td><td>外からは中に入れないが、中から外へは通信できる。ソフトウェア更新等に使う。<b>Always Free対象外</b>で、稼働時間や処理データ量に応じて課金されるため、このロードマップでは実機構築を任意・課金注意の発展演習として扱う</td></tr>
+      <tr><td class="term">CIDR</td><td class="short">ネットワークの「番地」の表し方</td><td>例：10.0.0.0/16。「/16」の数字が大きいほど範囲が狭くなる</td></tr><tr><td class="term">パブリック／プライベートSubnet</td><td class="short">VNICにパブリックIPを割り当てられる区画／割り当てない区画</td><td>Subnetは作成時にPublic SubnetまたはPrivate Subnetとして指定する。Public SubnetではVNICにパブリックIPを割り当てることができ、Private SubnetではVNICにパブリックIPを割り当てない（インターネットから直接アクセスさせない用途で使う）。Route Tableは「Subnetからどこへ通信を転送するか」を定義するものであり、Public/Privateの区分そのものを決めるものではない点に注意（Internet GatewayやNAT Gatewayへの経路をRoute Tableで設定する）</td></tr><tr><td class="term">NSG（Network Security Group）</td><td class="short">VNICに適用する通信の許可ルール</td><td>VNICに適用して「どのポート番号を」「どこからのアクセスに対して」開けるかを制御する仕組み。同様の制御はSecurity Listでも可能で、NSGは必須ではないが、本ロードマップではNSGを使って学習する。外部と通信できるかどうかは、NSGだけでなくSubnet・Route Table・Internet Gateway等のネットワーク構成とセキュリティルール全体によって決まる</td></tr><tr><td class="term">ルートテーブル</td><td class="short">通信の行き先を決める地図</td><td>「このIP範囲宛の通信はここへ送る」というルールの一覧</td></tr><tr><td class="term">インターネットゲートウェイ</td><td class="short">VCNとインターネットの出入口</td><td>Public SubnetからInternet Gateway経由でインターネットと直接通信するために、Route Tableにこれへの経路を設定する。NAT GatewayやService Gatewayなど、目的に応じた別の出口もある</td></tr><tr><td class="term">NATゲートウェイ</td><td class="short">Private Subnetから「出るだけ」を許可する仕組み</td><td>外からは中に入れないが、中から外へは通信できる。ソフトウェア更新等に使う。<b>Always Free対象外</b>で、稼働時間や処理データ量に応じて課金されるため、このロードマップでは役割・仕組み・Route Tableとの関係を概念として理解することを到達点とし、実機構築は行わない</td></tr>
     </table>
 
     <h2 class="section-title">週次タスク</h2>
@@ -48,7 +48,7 @@
       </div>
       <div class="block">
         <div class="block-label">🛠 具体的な手順</div>
-        <ol class="steps"><li>（準備）ブラウザで <a href="https://cloud.oracle.com/" target="_blank" rel="noopener">https://cloud.oracle.com/</a> を開き、9月第1週で作成したテナンシー名・ユーザー名・パスワードでログインしておく（すでにログイン済みならこの手順は不要）。以降の「〇〇を開く」はログイン後の画面からの操作を指す。</li><li><b>9月に作成したVCN・Computeを削除する。</b> まず「Compute」→9月Week3で作成したインスタンスを選択し「Terminate（インスタンスの終了）」で削除する。続けて「Virtual Cloud Networks」→9月に作成したVCNを開き、Subnet・Internet Gateway・NAT Gateway・Route Table・Security Listなど内部の依存リソースが残っていれば先に削除したうえで、VCN本体を削除する（依存リソースが残っているとVCNは削除できない）。ここで9月分を片付けておくことで、9月→10月→11月を通じてVCNが常に2個以下に保たれる。</li><li><b>CIDR表記を学ぶ。</b> 例えば<code class="inline">10.0.0.0/16</code>の「/16」は先頭16ビットがネットワーク部という意味で、10.0.0.0〜10.0.255.255の約6万5千個のアドレスを含む、という理解でまずはOK。</li><li><b>VCNを手動で作成する。</b>「Virtual Cloud Networks（仮想クラウド・ネットワーク）」→「Create VCN（VCNの作成）」（ウィザードは使わない）で、CIDR <code class="inline">10.0.0.0/16</code> を指定して作成する。</li><li><b>作成内容を確認する。</b> VCNの詳細画面でCIDRブロックが正しく表示されていることを確認する。</li><li><b>CIDR計算を自分の手で練習する。</b> <code class="inline">10.0.0.0/16</code>を4つの<code class="inline">/18</code>に分割した場合、それぞれのアドレス範囲がいくつになるかを計算し、正しいか確認する（オンラインのCIDR計算ツールで答え合わせしてOK）。翌週以降のSubnet設計で必ず使う考え方なので、ここで一度手を動かしておく。<code class="inline">study-notes</code>リポジトリに<code class="inline">2026-10-cidr-practice.md</code>として保存する。</li></ol>
+        <ol class="steps"><li>（準備）ブラウザで <a href="https://cloud.oracle.com/" target="_blank" rel="noopener">https://cloud.oracle.com/</a> を開き、9月第1週で作成したテナンシー名・ユーザー名・パスワードでログインしておく（すでにログイン済みならこの手順は不要）。以降の「〇〇を開く」はログイン後の画面からの操作を指す。</li><li><b>9月に作成したVCN・Computeを削除する。</b> まず「Compute」→9月Week3で作成したインスタンスを選択し「Terminate（インスタンスの終了）」で削除する。続けて「Virtual Cloud Networks」→9月に作成したVCNを開き、Subnet・Internet Gateway・Route Table・Security Listなど、内部の依存リソースが残っていれば先に削除したうえで、VCN本体を削除する（依存リソースが残っているとVCNは削除できない）。ここで9月分を片付けておくことで、9月→10月→11月を通じてVCNが常に2個以下に保たれる。</li><li><b>CIDR表記を学ぶ。</b> 例えば<code class="inline">10.0.0.0/16</code>の「/16」は先頭16ビットがネットワーク部という意味で、10.0.0.0〜10.0.255.255の約6万5千個のアドレスを含む、という理解でまずはOK。</li><li><b>VCNを手動で作成する。</b>「Virtual Cloud Networks（仮想クラウド・ネットワーク）」→「Create VCN（VCNの作成）」（ウィザードは使わない）で、CIDR <code class="inline">10.0.0.0/16</code> を指定して作成する。</li><li><b>作成内容を確認する。</b> VCNの詳細画面でCIDRブロックが正しく表示されていることを確認する。</li><li><b>CIDR計算を自分の手で練習する。</b> <code class="inline">10.0.0.0/16</code>を4つの<code class="inline">/18</code>に分割した場合、それぞれのアドレス範囲がいくつになるかを計算し、正しいか確認する（オンラインのCIDR計算ツールで答え合わせしてOK）。翌週以降のSubnet設計で必ず使う考え方なので、ここで一度手を動かしておく。<code class="inline">study-notes</code>リポジトリに<code class="inline">2026-10-cidr-practice.md</code>として保存する。</li></ol>
       </div>
       <div class="block">
         <div class="block-label">⚠️ つまずきやすいポイント</div>
@@ -121,10 +121,10 @@
       </div>
     </div>
     <div class="week" id="w4">
-      <div class="week-head"><span class="week-num">WEEK 04</span><span class="week-hours">目安 5.5〜6.5h</span><h3>Internet Gatewayの設計と構築（＋NAT Gateway：任意・課金注意）</h3></div>
+      <div class="week-head"><span class="week-num">WEEK 04</span><span class="week-hours">目安 3.5〜4h</span><h3>Internet Gatewayの設計と構築（NAT Gatewayは概念のみ）</h3></div>
       <div class="block">
         <div class="block-label">🎯 このタスクのゴール</div>
-        <div class="goal-text">（必須）Public SubnetのComputeからインターネットへ疎通できる状態を、Always Free枠の範囲内で作る。（任意）余力があれば、下記の発展演習でPrivate SubnetからもNAT Gateway経由でアウトバウンド通信だけができる状態まで作る。</div>
+        <div class="goal-text">Public SubnetのComputeからインターネットへ疎通できる状態を、Always Free枠の範囲内で作る。あわせて、NAT Gatewayの役割・Private Subnetから外部へ通信する仕組み・Route Tableとの関係を理解する（NAT GatewayはAlways Free対象外のため、実機構築は行わない）。</div>
       </div>
       <div class="block">
         <div class="block-label">📚 使う教材</div>
@@ -132,31 +132,15 @@
       </div>
       <div class="block">
         <div class="block-label">🛠 具体的な手順</div>
-        <ol class="steps"><li>（準備）ブラウザで <a href="https://cloud.oracle.com/" target="_blank" rel="noopener">https://cloud.oracle.com/</a> を開き、9月第1週で作成したテナンシー名・ユーザー名・パスワードでログインしておく（すでにログイン済みならこの手順は不要）。以降の「〇〇を開く」はログイン後の画面からの操作を指す。</li><li><b>Internet Gatewayを作る。</b>「Internet Gateways（インターネット・ゲートウェイ）」→「Create Internet Gateway（インターネット・ゲートウェイの作成）」し、Public Subnet用のRoute Table（<code class="inline">public-route-table</code>）に<code class="inline">0.0.0.0/0 → Internet Gateway</code>を追加する。</li><li><b>疎通確認する。</b> Public Subnet上のCompute（コンピュート）から<div class="cmd">curl https://example.com</div>を実行し、インターネットに出られることを確認する。</li><li><b>構成図を作る。</b> draw.ioでネットワーク詳細構成図（CIDR・NSG・Route Table（ルート表）・Internet Gatewayを含む）を作成し、PNGとして保存する。下記の任意演習でNAT Gatewayも構築した場合は、その内容もあわせて構成図に追記する。</li><li><b>GitHubに保存する。</b> <code class="inline">oci-learning-log</code>リポジトリのREADME.mdに画像を追加し、9月の構成図と合わせて更新してpushする。</li></ol>
+        <ol class="steps"><li>（準備）ブラウザで <a href="https://cloud.oracle.com/" target="_blank" rel="noopener">https://cloud.oracle.com/</a> を開き、9月第1週で作成したテナンシー名・ユーザー名・パスワードでログインしておく（すでにログイン済みならこの手順は不要）。以降の「〇〇を開く」はログイン後の画面からの操作を指す。</li><li><b>Internet Gatewayを作る。</b>「Internet Gateways（インターネット・ゲートウェイ）」→「Create Internet Gateway（インターネット・ゲートウェイの作成）」し、Public Subnet用のRoute Table（<code class="inline">public-route-table</code>）に<code class="inline">0.0.0.0/0 → Internet Gateway</code>を追加する。</li><li><b>疎通確認する。</b> Public Subnet上のCompute（コンピュート）から<div class="cmd">curl https://example.com</div>を実行し、インターネットに出られることを確認する。</li><li><b>構成図を作る。</b> draw.ioでネットワーク詳細構成図（CIDR・NSG・Route Table（ルート表）・Internet Gatewayを含む）を作成し、PNGとして保存する。あわせて、Private SubnetからNAT Gateway経由で外部へ通信する場合の経路（Route Tableに<code class="inline">0.0.0.0/0 → NAT Gateway</code>を追加するイメージ）も、実機構築はせず構成図上の設計として書き添えておく。</li><li><b>GitHubに保存する。</b> <code class="inline">oci-learning-log</code>リポジトリのREADME.mdに画像を追加し、9月の構成図と合わせて更新してpushする。</li></ol>
       </div>
       <div class="block">
         <div class="block-label">⚠️ つまずきやすいポイント</div>
-        <div class="warn-box"><ul><li><b>NAT GatewayはAlways Free対象外です。</b> Internet Gatewayとは異なり、稼働時間および処理データ量に応じて課金されるため、このロードマップでは必須演習には含めていません。下記「任意・発展演習」として実施する場合は、課金が発生しうることを理解したうえで進め、確認が終わったらNAT Gatewayを削除するなど、使い終わったリソースの後片付けを忘れないこと。</li><li>NAT Gatewayは「中から外」の一方通行。「外から中」を許可したい場合はInternet GatewayやBastion構成が必要になる、という違いを意識しておく。</li><li><b>発展課題（任意）：Service Gateway。</b> Private SubnetからOCI Object StorageやOCI Autonomous Database等、OCI内部のサービスにだけアクセスしたい場合、NAT Gatewayを経由すると一度インターネット側に出てから戻ってくる形になり無駄が多い。Service Gatewayを使うと、OCIのバックボーンネットワーク内だけを通ってOCIサービスにアクセスでき、インターネットを経由しない分セキュリティ的にも望ましい。余力があれば、Route TableにOCI Services宛のルートをService Gateway経由で追加し、NAT Gateway経由との違いを構成図に書き添えておくとよい（必須ではないため、時間がなければ次月以降に回してよい）。</li></ul></div>
-      </div>
-      <div class="block">
-        <div class="block-label">🧩 任意・発展演習：NAT Gatewayの実機構築（Always Free対象外・課金注意）</div>
-        <div class="goal-text">Private SubnetからもNAT Gateway経由でアウトバウンド通信だけができる状態を作る。<b>この演習は任意です。</b> NAT GatewayはAlways Free対象外のため、稼働時間および処理データ量に応じて課金される点に注意し、理解したうえで取り組む場合のみ実施すること。コストを避けたい場合は、実機構築はせず、構成図・ルート設計のみで学習してもよい。</div>
-        <ol class="steps"><li><b>NAT Gatewayを作る。</b>「NAT Gateways（NATゲートウェイ）」→「Create NAT Gateway（NATゲートウェイの作成）」で作成し、Private Subnet用のRoute Table（<code class="inline">private-route-table</code>）に<code class="inline">0.0.0.0/0 → NAT Gateway</code>を追加する。</li><li><b>Private SubnetにComputeを作る。</b>「Compute（コンピュート）」→「Instances（インスタンス）」→「Create Instance（インスタンスの作成）」を開き、Subnetは<code class="inline">private-subnet</code>を選ぶ（Public IPは割り当てない）。Shapeは<code class="inline">VM.Standard.E2.1.Micro</code>（Ampere Always Free枠とは別に、AMDベースで最大2台まで無料）を選ぶ（Week3で作成したPublic Subnet側のインスタンスと同じ理由で、この10月ではAmpere A1とは別枠のE2.1.Microを使用している）。作成後、<code class="inline">curl https://example.com</code>が外部へは通り、外部からPrivate Subnet宛のアクセスはできないことだけ手早く確認する（1月に一連の構成をTerraform化する際にあらためて詳しく検証するため、ここでは簡易確認でよい）。</li><li><b>構成図・GitHubを更新する。</b> 上記で作成した構成図にNAT Gatewayを追記し、<code class="inline">oci-learning-log</code>リポジトリのREADME.mdを更新してpushする。</li></ol>
-      </div>
-      <div class="block">
-        <div class="block-label">🧪 トラブルシュート演習：「通信できない、原因を特定せよ」（任意・上記のNAT Gateway演習を実施した場合のみ）</div>
-        <div class="goal-text">正常に疎通していたPrivate Subnet上のComputeが外部HTTPSへ接続できなくなった状態を想定し、Linuxコマンドとネットワーク設定の両面から原因を切り分けて復旧する。上記の任意演習でNAT Gatewayを構築していない場合は、この演習はスキップしてよい。</div>
-        <ol class="steps"><li><b>正常な状態を確認しておく。</b> Private Subnet上のComputeにSSHで接続し（Public Subnet側のComputeを踏み台として、そこからPrivate Subnet側のComputeへ接続する）、<div class="cmd">curl -v https://example.com</div>が正常に通ることを確認しておく。</li><li><b>障害を発生させる。</b> Private Subnet用のRoute Table（<code class="inline">private-route-table</code>）から<code class="inline">0.0.0.0/0 → NAT Gateway</code>のルールを削除する。</li><li><b>症状を確認する。</b> 同じComputeから再度<code class="inline">curl -v https://example.com</code>を実行し、失敗することを確認する。</li><li><b>Linuxコマンドで切り分ける。</b> 以下を順番に実行し、それぞれの結果と気づいたことを書き留める。<div class="cmd">ip addr
-ip route
-ss -lntp
-ping -c 3 8.8.8.8
-dig example.com
-curl -v https://example.com
-traceroute example.com</div><code class="inline">ip addr</code>でComputeのIP設定自体に問題がないか、<code class="inline">ip route</code>でOS側のデフォルトルートがどこを向いているかを確認する（OS側の設定は正常なことが多く、それが分かると「OCI側のRoute TableかNSGを疑う」という判断材料になる）。<code class="inline">ping</code>・<code class="inline">dig</code>・<code class="inline">traceroute</code>（無ければ<code class="inline">sudo apt install -y traceroute</code>）で、どこまで到達しどこで止まっているかを段階的に確認する。</li><li><b>OCI側の設定を確認する。</b> Linuxコマンドの結果から当たりを付けたら、OCIコンソールでPrivate SubnetのRoute Table（ルート表）とアタッチされているNSGのEgressルールを見直し、どちらに問題があるかを特定する。</li><li><b>復旧する。</b> 削除・変更した設定を元に戻し、<code class="inline">curl -v https://example.com</code>が再び通ることを確認する。</li><li><b>確認した順番を記録する。</b>「①何を確認したか→②何が分かったか→③次に何を確認したか→④原因→⑤復旧方法」の順で、5〜8行程度の箇条書きメモを作る。<code class="inline">study-notes</code>リポジトリに<code class="inline">2026-10-network-troubleshoot.md</code>として保存し、pushする。</li></ol>
+        <div class="warn-box"><ul><li><b>NAT GatewayはAlways Free対象外です。</b> Internet Gatewayとは異なり、稼働時間および処理データ量に応じて課金されるため、このロードマップでは実機構築の演習には含めず、役割・仕組みの理解にとどめます。</li><li>NAT Gatewayは「中から外」の一方通行。「外から中」を許可したい場合はInternet GatewayやBastion構成が必要になる、という違いを意識しておく。</li><li><b>参考知識：Service Gateway。</b> Private SubnetからOCI Object StorageやOCI Autonomous Database等、OCI内部のサービスにだけアクセスしたい場合、NAT Gatewayを経由すると一度インターネット側に出てから戻ってくる形になり無駄が多い。Service Gatewayを使うと、OCIのバックボーンネットワーク内だけを通ってOCIサービスにアクセスでき、インターネットを経由しない分セキュリティ的にも望ましい、という違いを概念として知っておくとよい（実機構築は不要）。</li></ul></div>
       </div>
       <div class="block">
         <div class="block-label">✅ 成果物</div>
-        <label class="deliverable" data-key="w4"><input type="checkbox"><span class="dtext">（必須）ネットワーク詳細構成図（oci-learning-logリポジトリのREADME.mdに保存）／（任意・NAT Gateway演習を実施した場合）ネットワークトラブルシュート記録（study-notesリポジトリにMarkdownで保存）</span></label>
+        <label class="deliverable" data-key="w4"><input type="checkbox"><span class="dtext">ネットワーク詳細構成図（oci-learning-logリポジトリのREADME.mdに保存）</span></label>
         
         <details class="sample-box">
           <summary>💡 サンプルを見る</summary>
@@ -166,14 +150,13 @@ traceroute example.com</div><code class="inline">ip addr</code>でComputeのIP�
  │    ├ NSG: public-nsg (22番=自宅IPのみ)
  │    ├ Route Table: 0.0.0.0/0 → Internet Gateway
  │    └ Compute (Ubuntu)
- └ Private Subnet 10.0.2.0/24　※以下は任意演習でNAT Gatewayを構築した場合の例
-      ├ Route Table: 0.0.0.0/0 → NAT Gateway
-      └ Compute（Database用途を想定したPrivate Subnet上のCompute）</pre></div>
+ └ Private Subnet 10.0.2.0/24　※実機は構築しない。設計上の経路として下記を構成図に書き添える
+      └ Route Table（設計）: 0.0.0.0/0 → NAT Gateway</pre></div>
         </details>
       </div>
       <div class="block">
         <div class="block-label">🧭 到達判定</div>
-        <div class="criteria-box"><ul><li>Public SubnetからInternet Gateway経由でインターネットに出られる仕組みを説明できる</li><li>NAT GatewayがAlways Free対象外であることを理解したうえで、「外から中へは入れないが中から外へは出られる」一方向の仕組みであることを説明できる（実機構築は任意）</li><li>（任意演習を実施した場合）ip route／ss -lntp等のLinuxコマンドと、OCI側のRoute Table・NSGの両面から通信障害の原因を切り分けられる</li></ul></div>
+        <div class="criteria-box"><ul><li>Public SubnetからInternet Gateway経由でインターネットに出られる仕組みを説明できる</li><li>NAT GatewayがAlways Free対象外であることを理解したうえで、「外から中へは入れないが中から外へは出られる」一方向の仕組みであることを説明できる（概念として理解し、実機構築は行わない）</li><li>Private Subnetから外部への通信がRoute Table経由でどのように設計されるかを、構成図をもとに説明できる</li></ul></div>
       </div>
     </div>
 
