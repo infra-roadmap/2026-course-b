@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>コースB：OCI限定コース（AWS資格を目指さない）｜2月：Terraform総合演習②</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">SES育成ロードマップ 2026年度</div>
+    <h1>コースB：OCI限定コース（AWS資格を目指さない）</h1>
+    <span class="course-badge b">SAA取得を目指さない</span>
+    <a class="back-index" href="index.html">← 目次（全7ヶ月）へ戻る</a>
+    <div class="nav-group-label">2月｜Terraform総合演習②</div>
+    <nav><a href="#w1"><span class="dot"></span>Module化の考え方</a><a href="#w2"><span class="dot"></span>networkモジュール化</a><a href="#w3"><span class="dot"></span>security/computeモジュール化</a><a href="#w4"><span class="dot"></span>dev/prod再利用実践</a></nav>
+    <div class="prevnext"><a href="2027-01.html">← 1月</a><a href="2027-03.html">3月 →</a></div>
+    <div class="nav-group-label">全体の月一覧</div>
+    <nav class="month-nav"><a href="2026-09.html"><span class="dot"></span>9月｜OCI基礎</a><a href="2026-10.html"><span class="dot"></span>10月｜OCIネットワーク</a><a href="2026-11.html"><span class="dot"></span>11月｜Terraform入門</a><a href="2026-12.html"><span class="dot"></span>12月｜Terraform実践</a><a href="2027-01.html"><span class="dot"></span>1月｜Terraform総合演習①</a><a href="2027-02.html" class="current"><span class="dot"></span>2月｜Terraform総合演習②</a><a href="2027-03.html"><span class="dot"></span>3月｜Terraform実務設計</a></nav>
+  </aside>
+  <main>
+    <div class="doc-header">
+      <div class="eyebrow">学習ロードマップ（詳細版）</div>
+      <h1>2月：Terraform総合演習②</h1>
+      <p class="sub">コースB：OCI限定コース（AWS資格を目指さない）</p>
+      <p class="lead">コードをモジュール化し、再利用性・保守性の高い構成に整理します。Moduleは単なるファイル分割ではなく、「同じコードを複数の環境・複数の用途で使い回すための仕組み」として理解し、実際にdev環境とprod環境で同じModuleを使い分けるところまで体験します。</p>
+      <p class="practical"><b>💼 この月で実務的にできるようになること：</b>重複の多いTerraformコードをモジュール（module）として部品化し、環境ごとに使い回せる保守性の高いディレクトリ構成に整理できるようになります。さらに、CIDRなどの環境差分をvariableで吸収しながら、同じModuleをdev／prodの複数環境に対して適用できるようになります。</p>
+    </div>
+
+    <h2 class="section-title" id="glossary">📖 この月で出てくる用語</h2>
+    <table class="glossary">
+      <tr><th style="width:14%">用語</th><th style="width:28%">ひとことで言うと</th><th>もう少し詳しく</th></tr>
+      <tr><td class="term">Module（モジュール）</td><td class="short">コードの再利用可能な部品</td><td>VCN構築用、Compute（コンピュート）構築用のようにコードをまとめて、使い回せるようにする仕組み。単なるファイル分割ではなく、複数の環境・複数の用途で再利用するための設計</td></tr><tr><td class="term">environments（環境ディレクトリ）</td><td class="short">同じModuleを呼び出す側を、環境ごとに分離したディレクトリ</td><td><code class="inline">environments/dev</code>、<code class="inline">environments/prod</code>のように分け、それぞれが同じModuleを異なる変数値で呼び出す</td></tr>
+    </table>
+
+    <h2 class="section-title">週次タスク</h2>
+    
+    <div class="week" id="w1">
+      <div class="week-head"><span class="week-num">WEEK 01</span><span class="week-hours">目安 3.5h</span><h3>Module化の考え方（＝複数環境で再利用するための設計）</h3></div>
+      <div class="block">
+        <div class="block-label">🎯 このタスクのゴール</div>
+        <div class="goal-text">同じコードを何度も書かずに済むよう、部品化の考え方を理解する。ここで大事なのは「ファイルを分けること」自体ではなく、「同じModuleを、CIDRやインスタンス数などの値だけ変えて、dev環境・prod環境のように複数の環境で使い回せるようにすること」だと理解すること。</div>
+      </div>
+      <div class="block">
+        <div class="block-label">📚 使う教材</div>
+        <ul class="materials"><li>Terraform公式ドキュメント（Modules） <a href="https://developer.hashicorp.com/terraform/language/modules" target="_blank" rel="noopener">https://developer.hashicorp.com/terraform/language/modules</a></li></ul>
+      </div>
+      <div class="block">
+        <div class="block-label">🛠 具体的な手順</div>
+        <ol class="steps"><li>PowerShellを開き、作業用フォルダに <code class="inline">cd</code> で移動してから、以降の操作を行う。</li><li>Moduleの概念（入力変数・出力・呼び出し方）をドキュメントで学習する。</li><li><b>今月のゴールとなる最終ディレクトリ構成を先に確認しておく。</b> 以下のように、<code class="inline">modules/</code>配下に部品を置き、<code class="inline">environments/dev</code>と<code class="inline">environments/prod</code>という呼び出し側を分けて、同じModuleを異なる変数値（CIDR等）で2つの環境に適用する、という今月のゴール像をイメージしてからWEEK02以降に進む。<div class="cmd">modules/
+  network/
+  security/
+  compute/
+
+environments/
+  dev/
+  prod/</div>なお、このディレクトリ構成はTerraformの唯一の正解ではなく、今回の学習で採用する構成の一例。目的はModule化の考え方・環境分離・再利用・変数による差分管理を身につけることであり、ディレクトリ構成そのものを暗記することではない。</li></ol>
+      </div>
+      <div class="block">
+        <div class="block-label">✅ 成果物</div>
+        <label class="deliverable" data-key="w1"><input type="checkbox"><span class="dtext"><span class="dnone">なし（Moduleの概念理解とゴール構成の把握が完了条件）</span></span></label>
+        
+      </div>
+      <div class="block">
+        <div class="block-label">🧭 到達判定</div>
+        <div class="criteria-box"><ul><li>Moduleが「ファイル分割」ではなく「複数環境で再利用するための仕組み」である理由を説明できる</li></ul></div>
+      </div>
+    </div>
+    <div class="week" id="w2">
+      <div class="week-head"><span class="week-num">WEEK 02</span><span class="week-hours">目安 3.5h</span><h3>networkモジュール化</h3></div>
+      <div class="block">
+        <div class="block-label">🎯 このタスクのゴール</div>
+        <div class="goal-text">ネットワーク関連のコードを1つの部品にまとめる。ただし単にファイルを移すだけでなく、CIDRなど環境によって変わる値をModule内にハードコードせず、呼び出す側から渡せるように<code class="inline">variables.tf</code>を設計する。</div>
+      </div>
+      <div class="block">
+        <div class="block-label">📚 使う教材</div>
+        <ul class="materials"><li>Terraform公式ドキュメント <a href="https://developer.hashicorp.com/terraform/docs" target="_blank" rel="noopener">https://developer.hashicorp.com/terraform/docs</a></li></ul>
+      </div>
+      <div class="block">
+        <div class="block-label">🛠 具体的な手順</div>
+        <ol class="steps"><li>PowerShellを開き、作業用フォルダに <code class="inline">cd</code> で移動してから、以降の操作を行う。</li><li><code class="inline">modules/network</code>ディレクトリを作成し、VCN/Subnet/Route Table（ルート表）をモジュール化する（NSGはセキュリティに関わるリソースのため、WEEK03で作る<code class="inline">modules/security</code>側にまとめる。network moduleではネットワークの土台となるVCN・Subnet・Route Tableのみを扱う）。<code class="inline">variables.tf</code>に<code class="inline">vcn_cidr</code>・<code class="inline">public_subnet_cidr</code>などを定義し、これまでコード中に直接書いていたCIDR値を変数参照に置き換える。</li><li>取得すべき値（VCNのOCIDやSubnetのOCIDなど）を<code class="inline">outputs.tf</code>に定義し、あとでsecurity moduleやcompute moduleから参照できるようにする。</li><li>ルートの<code class="inline">main.tf</code>から<code class="inline">module "network" { source = "./modules/network" vcn_cidr = "10.0.0.0/16" ... }</code>のように、変数を渡す形で呼び出す。</li><li>これまでroot直下で管理していたVCN/Subnet/Route Tableをmoduleへ移すと、Terraform state上のリソースアドレスが変わる（例：<code class="inline">oci_core_vcn.this</code> → <code class="inline">module.network.oci_core_vcn.this</code>）ため、<code class="inline">moved</code>ブロック等でstate上のアドレス変更を引き継ぐ。</li><li><code class="inline">terraform fmt -recursive</code>でmodules配下も含めて整形し、<code class="inline">terraform validate</code>で文法チェックする。あわせて<code class="inline">terraform plan</code>を実行し、意図しないリソースの削除・再作成が発生していないことを確認する。</li></ol>
+      </div>
+      <div class="block">
+        <div class="block-label">✅ 成果物</div>
+        <label class="deliverable" data-key="w2"><input type="checkbox"><span class="dtext">modules/networkディレクトリ一式（oci-learning-logリポジトリ内に保存し、ローカルでapply確認）</span></label>
+        
+      </div>
+      <div class="block">
+        <div class="block-label">🧭 到達判定</div>
+        <div class="criteria-box"><ul><li>CIDR等の環境差分をハードコードせず、variableとして呼び出し側から渡せるModuleを書ける</li><li>network moduleがVCN・Subnet・Route Tableというネットワーク基盤を担当し、NSGはsecurity module側の責務であることを説明できる</li></ul></div>
+      </div>
+    </div>
+    <div class="week" id="w3">
+      <div class="week-head"><span class="week-num">WEEK 03</span><span class="week-hours">目安 3.5h</span><h3>security/computeモジュール化</h3></div>
+      <div class="block">
+        <div class="block-label">🎯 このタスクのゴール</div>
+        <div class="goal-text">同様の考え方で、セキュリティ関連・Compute（コンピュート）関連もモジュール化する。network moduleと同様、環境によって変わりうる値（許可CIDR、Shape、インスタンス数など）はハードコードせず変数化する。</div>
+      </div>
+      <div class="block">
+        <div class="block-label">📚 使う教材</div>
+        <ul class="materials"><li>Terraform公式ドキュメント <a href="https://developer.hashicorp.com/terraform/docs" target="_blank" rel="noopener">https://developer.hashicorp.com/terraform/docs</a></li></ul>
+      </div>
+      <div class="block">
+        <div class="block-label">🛠 具体的な手順</div>
+        <ol class="steps"><li>PowerShellを開き、作業用フォルダに <code class="inline">cd</code> で移動してから、以降の操作を行う。</li><li><code class="inline">modules/security</code>（NSG/Policy）、<code class="inline">modules/compute</code>（Instance）を切り出す。<code class="inline">modules/compute</code>には<code class="inline">instance_shape</code>や<code class="inline">instance_count</code>を変数として持たせ、呼び出す環境によって台数やShapeを変えられるようにする。</li><li>network moduleの<code class="inline">outputs.tf</code>で出力したSubnetのOCIDなどを、<code class="inline">module "security"</code>・<code class="inline">module "compute"</code>の入力として受け渡す（<code class="inline">subnet_id = module.network.private_app_subnet_id</code>のような形）。</li><li>既存のNSG/Policy/Instanceリソースをmodules/security・modules/computeへ移す場合も、リソースアドレスが変わるため<code class="inline">moved</code>ブロック等でstate上のアドレス変更を引き継ぐ。</li><li><code class="inline">terraform validate</code>を実行し、モジュール分割後もコードにエラーが無いことを確認する。あわせて<code class="inline">terraform plan</code>で不要な削除・再作成が発生していないことを確認する。</li></ol>
+      </div>
+      <div class="block">
+        <div class="block-label">✅ 成果物</div>
+        <label class="deliverable" data-key="w3"><input type="checkbox"><span class="dtext">modules/security・modules/computeディレクトリ一式（oci-learning-logリポジトリ内に保存し、ローカルでapply確認）</span></label>
+        
+      </div>
+      <div class="block">
+        <div class="block-label">🧭 到達判定</div>
+        <div class="criteria-box"><ul><li>network moduleのoutputsを、security/compute moduleの入力として受け渡せる</li></ul></div>
+      </div>
+    </div>
+    <div class="week" id="w4">
+      <div class="week-head"><span class="week-num">WEEK 04</span><span class="week-hours">目安 5h</span><h3>ディレクトリ整理とdev/prod再利用実践</h3></div>
+      <div class="block">
+        <div class="block-label">🎯 このタスクのゴール</div>
+        <div class="goal-text">誰が見ても分かりやすいフォルダ構成に整えたうえで、「同じModuleを複数環境で使い回す」ことを実際に体験する。dev環境に加えてprod環境を新設し、CIDRなどの差分をvariableで吸収しながら、同じmodules配下のコードをそのまま2つの環境に適用する。Module変更はbranch上で管理する。</div>
+      </div>
+      <div class="block">
+        <div class="block-label">📚 使う教材</div>
+        <ul class="materials"><li>GitHub上の公開Terraformリポジトリ（検索して構成を参考にする） <a href="https://github.com/search?q=oci+terraform+language%3AHCL&type=repositories" target="_blank" rel="noopener">https://github.com/search?q=oci+terraform+language%3AHCL&type=repositories</a></li></ul>
+      </div>
+      <div class="block">
+        <div class="block-label">🛠 具体的な手順</div>
+        <ol class="steps"><li>PowerShellを開き、作業用フォルダに <code class="inline">cd</code> で移動してから、以降の操作を行う。</li><li><b>作業用のbranchを切る。</b> 今週のModule変更・環境追加はbranch上で行う。<div class="cmd">git checkout -b feature/prod-environment</div></li><li><code class="inline">environments/dev</code>のようにモジュール呼び出し側を分離し、これまでの構成をdev環境として位置づける（<code class="inline">vcn_cidr = "10.0.0.0/16"</code>など、WEEK02〜03で定義した変数に値を渡す）。</li><li><b>environments/prodを新設する。</b> <code class="inline">environments/prod/main.tf</code>を作り、<code class="inline">environments/dev</code>と同じ<code class="inline">modules/network</code>・<code class="inline">modules/security</code>・<code class="inline">modules/compute</code>を呼び出す。Module自体のコードは変更せず、<code class="inline">vcn_cidr = "10.1.0.0/16"</code>のようにCIDRだけをdevと重複しない値に変えて渡す。</li><li><code class="inline">cd environments/prod</code>で<code class="inline">terraform init</code>・<code class="inline">terraform plan</code>を実行し、devと同じModuleコードのまま、prod用のリソース（別CIDRのVCN等）が計画されることを確認する。</li><li><b>Always Free枠を使い切らないよう確認後は片付ける。</b> ネットワーク部分（VCN/Subnet）とセキュリティ部分（NSG）はapplyしたままでよいが、Compute部分はAmpere A1・E2.1.MicroのAlways Free枠に上限があるため、dev/prod分を同時に立てっぱなしにしない。片付けは、<code class="inline">environments/prod/main.tf</code>から<code class="inline">module "compute"</code>の呼び出しをコメントアウト（または削除）し、<code class="inline">terraform plan</code>でCompute部分だけが削除対象になっていることを確認したうえで<code class="inline">terraform apply</code>する、という通常のコード変更＋plan/applyの流れで行う。</li><li><b>CLIで全体像を確認する。</b> <code class="inline">oci network vcn list --compartment-id &lt;コンパートメントOCID&gt;</code>を実行し、dev用・prod用の2つのVCNが存在することをCLIから俯瞰できることを確認する。</li><li><code class="inline">oci-learning-log</code>リポジトリのREADME.mdに、dev/prod両方を含めたディレクトリ構成図と、各モジュールの役割（<code class="inline">network＝VCN/Subnet/Route Tableを管理</code>等）を1行ずつ追記する。</li><li>branch上でcommitし、pushする。<div class="cmd">git add .
+git commit -m "Add prod environment reusing existing modules"
+git push -u origin feature/prod-environment</div>このbranchのPull Request作成・レビュー・mainへのmergeは、3月にあらためて一連の流れとして扱う。また、ここで分けたdev/prod環境は、3月にそれぞれ独立したTerraform Remote State（tfstateのkeyをdev/prodで分離したもの）を持たせる設計につなげる。</li></ol>
+      </div>
+      <div class="block">
+        <div class="block-label">⚠️ つまずきやすいポイント</div>
+        <div class="warn-box"><ul><li>12月にも触れた通り、<code class="inline">-target</code>は依存関係を無視するオプションではなく、指定したリソースを中心とした部分的な操作を行うためのオプション。対象範囲を絞る分、コードの依存関係と実際の状態がずれやすい。障害対応・復旧作業など限定的な場面で使う高度なオプションという位置づけであり、今回のようなCompute部分の通常の後片付けは、コード変更＋<code class="inline">plan</code>／<code class="inline">apply</code>（必要に応じて通常の<code class="inline">terraform destroy</code>）で行うのが基本、と覚えておく。</li></ul></div>
+      </div>
+      <div class="block">
+        <div class="block-label">✅ 成果物</div>
+        <label class="deliverable" data-key="w4"><input type="checkbox"><span class="dtext">modules（network/security/compute）のディレクトリ構造、environments/dev・environments/prodそれぞれの呼び出しコード（feature/prod-environment branchにpush済み）</span></label>
+        
+        <details class="sample-box">
+          <summary>💡 サンプルを見る</summary>
+          <div class="sample-content"><p>モジュール化＋dev/prod再利用後のディレクトリ構成の例（oci-learning-logリポジトリの中身）：</p>
+<pre>oci-learning-log/
+├── environments/
+│   ├── dev/
+│   │   └── main.tf        (vcn_cidr = "10.0.0.0/16" 等で呼び出す)
+│   └── prod/
+│       └── main.tf        (vcn_cidr = "10.1.0.0/16" 等、値だけ変えて同じmoduleを呼び出す)
+└── modules/
+    ├── network/
+    │   ├── main.tf
+    │   ├── variables.tf
+    │   └── outputs.tf
+    ├── security/
+    │   ├── main.tf
+    │   ├── variables.tf
+    │   └── outputs.tf
+    └── compute/
+        ├── main.tf
+        ├── variables.tf
+        └── outputs.tf</pre></div>
+        </details>
+      </div>
+      <div class="block">
+        <div class="block-label">🧭 到達判定</div>
+        <div class="criteria-box"><ul><li>同じModuleコードを変更せず、変数の値だけを変えてdev/prod2つの環境に適用できる</li><li>-targetオプションが通常運用で常用するものではなく、障害対応など限定的な場面で使う高度なオプションであることを説明できる</li></ul></div>
+      </div>
+    </div>
+
+    <footer>
+      2026年度 SESインフラエンジニア育成ロードマップ（コースB：OCI限定コース（AWS資格を目指さない））｜チェックボックスの状態はこのブラウザに保存され、次回このページを開いたときも復元されます（進捗管理はPlannerで行ってください）
+    </footer>
+  </main>
+</div>
+<script>
+(function() {
+  const STORAGE_KEY = 'roadmap-checklist:courseB-2027-02';
+  let storageAvailable = true;
+  let saved = {};
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    saved = raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    storageAvailable = false;
+  }
+
+  function persist() {
+    if (!storageAvailable) return;
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+    } catch (e) {
+      storageAvailable = false;
+    }
+  }
+
+  const boxes = document.querySelectorAll('.deliverable input[type=checkbox]');
+  boxes.forEach(b => {
+    const label = b.closest('.deliverable');
+    const key = label ? label.getAttribute('data-key') : null;
+    if (key && saved[key]) {
+      b.checked = true;
+      label.classList.add('done');
+    }
+    b.addEventListener('change', () => {
+      label.classList.toggle('done', b.checked);
+      if (key) {
+        if (b.checked) {
+          saved[key] = true;
+        } else {
+          delete saved[key];
+        }
+        persist();
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>

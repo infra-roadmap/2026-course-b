@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>コースB：OCI限定コース（AWS資格を目指さない）｜11月：Terraform入門</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">SES育成ロードマップ 2026年度</div>
+    <h1>コースB：OCI限定コース（AWS資格を目指さない）</h1>
+    <span class="course-badge b">SAA取得を目指さない</span>
+    <a class="back-index" href="index.html">← 目次（全7ヶ月）へ戻る</a>
+    <div class="nav-group-label">11月｜Terraform入門</div>
+    <nav><a href="#w1"><span class="dot"></span>環境構築・Provider</a><a href="#w2"><span class="dot"></span>Resource基礎</a><a href="#w3"><span class="dot"></span>Variable・Output</a><a href="#w4"><span class="dot"></span>Subnet構築・Git管理</a></nav>
+    <div class="prevnext"><a href="2026-10.html">← 10月</a><a href="2026-12.html">12月 →</a></div>
+    <div class="nav-group-label">全体の月一覧</div>
+    <nav class="month-nav"><a href="2026-09.html"><span class="dot"></span>9月｜OCI基礎</a><a href="2026-10.html"><span class="dot"></span>10月｜OCIネットワーク</a><a href="2026-11.html" class="current"><span class="dot"></span>11月｜Terraform入門</a><a href="2026-12.html"><span class="dot"></span>12月｜Terraform実践</a><a href="2027-01.html"><span class="dot"></span>1月｜Terraform総合演習①</a><a href="2027-02.html"><span class="dot"></span>2月｜Terraform総合演習②</a><a href="2027-03.html"><span class="dot"></span>3月｜Terraform実務設計</a></nav>
+  </aside>
+  <main>
+    <div class="doc-header">
+      <div class="eyebrow">学習ロードマップ（詳細版）</div>
+      <h1>11月：Terraform入門</h1>
+      <p class="sub">コースB：OCI限定コース（AWS資格を目指さない）</p>
+      <p class="lead">ここからは手作業ではなく、コードでインフラを構築する「Terraform」を学びます。教材はOracle公式の日本語チュートリアルを使用します。</p>
+      <p class="practical"><b>💼 この月で実務的にできるようになること：</b>手作業で作っていたOCIリソースをTerraformコード（HCL）として書き起こし、init／plan／applyの流れとGitでのコード管理を、実務のIaC運用の基本として自分ひとりで回せるようになります。</p>
+    </div>
+
+    <h2 class="section-title" id="glossary">📖 この月で出てくる用語</h2>
+    <table class="glossary">
+      <tr><th style="width:14%">用語</th><th style="width:28%">ひとことで言うと</th><th>もう少し詳しく</th></tr>
+      <tr><td class="term">Terraform</td><td class="short">インフラをコードで作るツール</td><td>「IaC（Infrastructure as Code）」の代表的なツールの1つ。手作業をコードに置き換える</td></tr><tr><td class="term">HCL</td><td class="short">Terraformが使う専用の記述言語</td><td>HashiCorp Configuration Languageの略。JSONに近いが、もう少し人間が書きやすい構文</td></tr><tr><td class="term">Provider</td><td class="short">Terraformが操作するクラウドの種類を指定する設定</td><td>「OCIを操作します」という宣言をコードの先頭に書く</td></tr><tr><td class="term">plan / apply</td><td class="short">変更内容の予告 / 実際の適用</td><td>plan＝「これから何を作る/変えるか」の確認、apply＝実際に実行</td></tr><tr><td class="term">state（ステート）</td><td class="short">Terraformが管理する「現在の状態」の記録</td><td>実際に作られたリソースの情報がファイルに記録される。壊すと復旧が大変なので取り扱い注意</td></tr>
+    </table>
+
+    <h2 class="section-title">週次タスク</h2>
+    
+    <div class="week" id="w1">
+      <div class="week-head"><span class="week-num">WEEK 01</span><span class="week-hours">目安 4h</span><h3>Terraform概要、環境構築、Provider</h3></div>
+      <div class="block">
+        <div class="block-label">🎯 このタスクのゴール</div>
+        <div class="goal-text">手作業でポチポチ作っていたVCN等を、これから「コード」で再現できるようにするための土台を作る。</div>
+      </div>
+      <div class="block">
+        <div class="block-label">📚 使う教材</div>
+        <ul class="materials"><li>Oracle公式チュートリアル（日本語）「Terraformの設定」 <a href="https://docs.oracle.com/ja-jp/iaas/developer-tutorials/tutorials/tf-provider/01-summary.htm" target="_blank" rel="noopener">https://docs.oracle.com/ja-jp/iaas/developer-tutorials/tutorials/tf-provider/01-summary.htm</a></li></ul>
+      </div>
+      <div class="block">
+        <div class="block-label">🛠 具体的な手順</div>
+        <ol class="steps"><li>PowerShell（またはコマンドプロンプト）を開く（スタートメニューで「PowerShell」と検索して起動。普段VS Codeを使っているなら内蔵のターミナル機能でもよい）。作業用フォルダに <code class="inline">cd</code> コマンドで移動してから、以降の操作を行う。</li><li><b>Terraformをインストールする。</b> PowerShellを「管理者として実行」で開き、<div class="cmd">winget install HashiCorp.Terraform</div>を実行する（wingetはWindows標準のパッケージ管理ツール）。インストール後、新しいPowerShellを開き直して<code class="inline">terraform -version</code>でバージョンが表示されることを確認する。<b>本コースではTerraform v1.12.0以上を使用する</b>（3月に使用するOCI Native Backendの要件のため）。表示されたバージョンがv1.12.0未満の場合は、<a href="https://developer.hashicorp.com/terraform/install" target="_blank" rel="noopener">HashiCorp公式サイト</a>から最新版を再インストールする。</li><li><b>OCI CLIをインストールする。</b> OCI CLIのGitHubリリースページ（<a href="https://github.com/oracle/oci-cli/releases/latest" target="_blank" rel="noopener">https://github.com/oracle/oci-cli/releases/latest</a>）からWindows用MSIインストーラーをダウンロードして実行するのが最も簡単。インストール後、新しいPowerShellで<code class="inline">oci --version</code>が表示されることを確認する。</li><li><b>APIキーを発行し、認証情報を設定する。</b> これは2段階の作業になる。①PowerShellで<code class="inline">oci setup config</code>を実行すると、対話形式で質問されながらローカルに秘密鍵・公開鍵のペアが自動生成される（保存場所はデフォルトのままでよい）。②生成された公開鍵の中身をコピーし、OCIコンソール右上のユーザーアイコン→「User Settings（ユーザー設定）」→「API Keys（APIキー）」→「Add API Key（APIキーの追加）」で貼り付けて登録する。この②を忘れると、①だけでは認証が通らない点に注意。</li><li><b>CLIの疎通確認をする。</b> <code class="inline">oci iam compartment list --compartment-id &lt;テナンシーOCID&gt;</code>を実行し、認証設定が正しくできているかをOCI CLIから確認する（コンパートメント一覧がJSON形式で返ってくればOK）。</li><li><b>Providerを記述する。</b> 作業フォルダに<code class="inline">provider.tf</code>を作り、チュートリアルのサンプルをコピーして自分のテナンシーOCID等に書き換える。</li></ol>
+      </div>
+      <div class="block">
+        <div class="block-label">⚠️ つまずきやすいポイント</div>
+        <div class="warn-box"><ul><li>「Terraform」と「OCI CLI」は別物。<code class="inline">oci setup config</code>で生成された認証情報ファイル（<code class="inline">~/.oci/config</code>）を、Terraform OCI Providerが直接読み込んで利用する（実行のたびにOCI CLIを経由して認証しているわけではない）、という関係を理解しておくと混乱しにくい。</li><li><code class="inline">oci setup config</code>で鍵を作っただけでは認証は通らない。生成された公開鍵をOCIコンソール側にも登録する、という2段階セットであることを忘れないこと。</li></ul></div>
+      </div>
+      <div class="block">
+        <div class="block-label">✅ 成果物</div>
+        <label class="deliverable" data-key="w1"><input type="checkbox"><span class="dtext"><span class="dnone">なし（環境構築・APIキー発行・provider.tf作成が完了条件）</span></span></label>
+        
+      </div>
+      <div class="block">
+        <div class="block-label">🧭 到達判定</div>
+        <div class="criteria-box"><ul><li>TerraformとOCI CLIの関係を説明できる</li><li>APIキー発行とOCIコンソール登録が2段階の作業である理由を説明できる</li></ul></div>
+      </div>
+    </div>
+    <div class="week" id="w2">
+      <div class="week-head"><span class="week-num">WEEK 02</span><span class="week-hours">目安 4h</span><h3>Resource基礎（VCN構築をコード化）</h3></div>
+      <div class="block">
+        <div class="block-label">🎯 このタスクのゴール</div>
+        <div class="goal-text">10月に手動で作ったVCNと同じものを、コードから再現する。</div>
+      </div>
+      <div class="block">
+        <div class="block-label">📚 使う教材</div>
+        <ul class="materials"><li>Oracle公式チュートリアル「インフラストラクチャの構築」 <a href="https://docs.oracle.com/ja-jp/iaas/developer-tutorials/tutorials/tf-provider/03-summary.htm" target="_blank" rel="noopener">https://docs.oracle.com/ja-jp/iaas/developer-tutorials/tutorials/tf-provider/03-summary.htm</a></li></ul>
+      </div>
+      <div class="block">
+        <div class="block-label">🛠 具体的な手順</div>
+        <ol class="steps"><li>PowerShell（またはコマンドプロンプト）を開く（スタートメニューで「PowerShell」と検索して起動。普段VS Codeを使っているなら内蔵のターミナル機能でもよい）。作業用フォルダに <code class="inline">cd</code> コマンドで移動してから、以降の操作を行う。</li><li><code class="inline">main.tf</code>に<code class="inline">resource "oci_core_vcn" ...</code>ブロックを記述する。</li><li><code class="inline">terraform init</code>を実行する（Providerのダウンロード）。</li><li><code class="inline">terraform fmt</code>でコードを整形し、<code class="inline">terraform validate</code>で文法エラーが無いことを確認する（plan/applyの前に必ず行う習慣にする）。</li><li><code class="inline">terraform plan</code>で「何が作られるか」の予告を確認する。</li><li><code class="inline">terraform apply</code>を実行し、<code class="inline">yes</code>と入力して実際にVCNを作成する。</li><li>10月に手動で作ったVCNは、この時点ではまだ削除しない。Public/Private Subnet・Route Table・NSG（public-nsg）・Compute（10月week3作成分、任意演習を実施していればweek4作成分も含む）がまだ紐づいており、依存リソースを持つVCNはそのままでは削除できないため、これらを11月week4（Subnet）・12月（Compute）で順次Terraformコードとして移行し終えたあと、まとめて一本化する（9月分のVCN・Computeは10月着手前にすでに削除済みのため、この時点でのVCNは10月の手動VCNとここで作成したTerraform管理VCNの2個であり、上限内に収まっている）。</li></ol>
+      </div>
+      <div class="block">
+        <div class="block-label">⚠️ つまずきやすいポイント</div>
+        <div class="warn-box"><ul><li><code class="inline">terraform apply</code>はいきなり実行せず、必ず<code class="inline">plan</code>で内容を確認してから実行する癖をつける。</li><li>OCIのVCNは、内部にSubnetなどの依存リソースが残っている状態では削除できない。依存リソースを先に整理してから最後にVCN本体を削除する、という順序を意識しておく（実際に手動環境を片付けるのは、Subnet・Computeの移行が完了したあと）。</li></ul></div>
+      </div>
+      <div class="block">
+        <div class="block-label">🧪 意図的な設定ミスからの復旧</div>
+        <div class="goal-text">HCLの文法ミスをわざと入れて、terraformのエラーメッセージを自分で読んで直せるようになる。</div>
+        <ol class="steps"><li><b>文法ミスを入れる。</b> <code class="inline">main.tf</code>の<code class="inline">resource "oci_core_vcn" ...</code>ブロックの閉じカッコ<code class="inline">}</code>を1つ削除するなど、文法エラーになる変更を加える。</li><li><b>エラーを確認する。</b> <code class="inline">terraform validate</code>を実行し、表示されるエラーメッセージ（ファイル名・行番号・エラー内容）を読む。</li><li><b>直す。</b> エラーメッセージが指す箇所を自分で直し、<code class="inline">terraform validate</code>がエラー無しで通ることを確認する。</li><li><b>別のミスも試す。</b> 今度は属性名を意図的にtypoする（例：<code class="inline">cidr_block</code>を<code class="inline">cider_block</code>にする）。「そのような属性は存在しない」系のエラーメッセージの読み方にも慣れておく。</li></ol>
+      </div>
+      <div class="block">
+        <div class="block-label">✅ 成果物</div>
+        <label class="deliverable" data-key="w2"><input type="checkbox"><span class="dtext">Terraformコード一式（VCN定義。oci-learning-logリポジトリ用のローカル作業フォルダに保存し、apply確認できていればOK。pushは11月week4にまとめて行う）</span></label>
+        
+      </div>
+      <div class="block">
+        <div class="block-label">🧭 到達判定</div>
+        <div class="criteria-box"><ul><li>terraform validateのエラーメッセージを読んで、自分でコードを修正できる</li><li>文法ミスと属性名のtypoで、エラーメッセージの出方が異なることを説明できる</li></ul></div>
+      </div>
+    </div>
+    <div class="week" id="w3">
+      <div class="week-head"><span class="week-num">WEEK 03</span><span class="week-hours">目安 2.5h</span><h3>Variable、Output</h3></div>
+      <div class="block">
+        <div class="block-label">🎯 このタスクのゴール</div>
+        <div class="goal-text">CIDRやコンパートメントOCIDのような値を、コードの外に切り出して管理できるようにする。</div>
+      </div>
+      <div class="block">
+        <div class="block-label">📚 使う教材</div>
+        <ul class="materials"><li>Oracle公式チュートリアル「変数の宣言」「出力値の照会」 <a href="https://docs.oracle.com/ja-jp/iaas/developer-tutorials/tutorials/tf-provider/04-summary.htm" target="_blank" rel="noopener">https://docs.oracle.com/ja-jp/iaas/developer-tutorials/tutorials/tf-provider/04-summary.htm</a></li></ul>
+      </div>
+      <div class="block">
+        <div class="block-label">🛠 具体的な手順</div>
+        <ol class="steps"><li>PowerShell（またはコマンドプロンプト）を開く（スタートメニューで「PowerShell」と検索して起動。普段VS Codeを使っているなら内蔵のターミナル機能でもよい）。作業用フォルダに <code class="inline">cd</code> コマンドで移動してから、以降の操作を行う。</li><li>ハードコードしていた値を<code class="inline">variables.tf</code>に切り出す。</li><li><code class="inline">terraform.tfvars</code>に実際の値を書く（秘密情報を含むためGitには入れない）。</li><li><code class="inline">outputs.tf</code>にVCNのOCIDを出力する設定を書き、<code class="inline">terraform apply</code>後に値が表示されることを確認する。</li><li><b>変数の優先順位を体感する。</b> <code class="inline">terraform.tfvars</code>とは別の値を、コマンド実行時に<code class="inline">terraform plan -var="任意の変数名=別の値"</code>のように指定し、<code class="inline">-var</code>で渡した値が<code class="inline">tfvars</code>ファイルより優先されることを確認する。CI/CDや複数人開発で「どの値が実際に使われるか」を判断する上で必要な理解になる。</li></ol>
+      </div>
+      <div class="block">
+        <div class="block-label">⚠️ つまずきやすいポイント</div>
+        <div class="warn-box"><ul><li><code class="inline">terraform.tfvars</code>には環境固有の値や、場合によっては秘密情報を含めるため、Gitでは絶対に管理しない（テナンシーOCID等のOCID自体はパスワードのような秘密情報ではないが、このファイルには秘密情報を含める可能性があるため、ファイル単位でGit管理対象から外す）。まだGitを導入していない状態だが（Git導入は来週）、来週<code class="inline">.gitignore</code>を作ったら真っ先にこのファイルを登録すること。</li></ul></div>
+      </div>
+      <div class="block">
+        <div class="block-label">✅ 成果物</div>
+        <label class="deliverable" data-key="w3"><input type="checkbox"><span class="dtext">variables.tf／outputs.tf（oci-learning-logリポジトリ用のローカル作業フォルダに保存し、動作確認できていればOK。pushは11月week4にまとめて行う）</span></label>
+        
+      </div>
+      <div class="block">
+        <div class="block-label">🧭 到達判定</div>
+        <div class="criteria-box"><ul><li>-varオプションで渡した値がtfvarsファイルより優先される、という変数の優先順位を説明できる</li></ul></div>
+      </div>
+    </div>
+    <div class="week" id="w4">
+      <div class="week-head"><span class="week-num">WEEK 04</span><span class="week-hours">目安 4.5h</span><h3>Subnet構築（Git管理開始）</h3></div>
+      <div class="block">
+        <div class="block-label">🎯 このタスクのゴール</div>
+        <div class="goal-text">ここまでのコードをGitHubで管理できるようにする。</div>
+      </div>
+      <div class="block">
+        <div class="block-label">📚 使う教材</div>
+        <ul class="materials"><li>Oracle公式チュートリアル「インフラストラクチャの変更」 <a href="https://docs.oracle.com/ja-jp/iaas/developer-tutorials/tutorials/tf-provider/05-summary.htm" target="_blank" rel="noopener">https://docs.oracle.com/ja-jp/iaas/developer-tutorials/tutorials/tf-provider/05-summary.htm</a></li></ul>
+      </div>
+      <div class="block">
+        <div class="block-label">🛠 具体的な手順</div>
+        <ol class="steps"><li>PowerShell（またはコマンドプロンプト）を開く（スタートメニューで「PowerShell」と検索して起動。普段VS Codeを使っているなら内蔵のターミナル機能でもよい）。作業用フォルダに <code class="inline">cd</code> コマンドで移動してから、以降の操作を行う。</li><li><b>Gitをインストールする（未導入の場合）。</b> PowerShellで<div class="cmd">winget install Git.Git</div>を実行する。インストール後、新しいPowerShellで<code class="inline">git --version</code>が表示されることを確認する。</li><li>Terraformコードは9月week4で作成済みの<code class="inline">oci-learning-log</code>リポジトリに置く（新規リポジトリは作らない）。ローカルにcloneしていない場合は<code class="inline">git clone</code>してから作業する。</li><li><code class="inline">.gitignore</code>に<code class="inline">*.tfstate</code>、<code class="inline">*.tfstate.backup</code>、<code class="inline">terraform.tfvars</code>、<code class="inline">.terraform/</code>を追加し、これまで<code class="inline">git init</code>していなければ<code class="inline">git init</code>してから、ここまでのコードを一度<code class="inline">git add</code>→<code class="inline">git commit</code>→<code class="inline">git push</code>でmainブランチにpushしておく（土台として1回だけ）。</li><li><b>作業用のbranchを切る。</b> これ以降の変更は、mainに直接コミットするのではなくbranch上で行う習慣をここから始める。<div class="cmd">git checkout -b feature/add-subnets</div></li><li>このbranch上で<code class="inline">oci_core_subnet</code>リソースをPublic/Privateの2つ分コード化する。</li><li><code class="inline">terraform fmt</code>でコードを整形し、<code class="inline">terraform validate</code>で文法エラーが無いことを確認してから、<code class="inline">terraform plan</code>で作成内容を確認し、<code class="inline">terraform apply</code>する。</li><li><b>CLIでも確認する。</b> <code class="inline">oci network subnet list --compartment-id &lt;コンパートメントOCID&gt;</code>を実行し、コンソールとCLIの両方でSubnetが作成されていることを確認する。</li><li><b>branch上でcommitし、pushする。</b><div class="cmd">git add .
+git commit -m "Add public/private subnets"
+git push -u origin feature/add-subnets</div>mainブランチではなく<code class="inline">feature/add-subnets</code>branchにpushされていることをGitHub上で確認する（このbranchのPull Request作成・レビュー・mainへのmergeは、1月以降にあらためて扱う）。</li></ol>
+      </div>
+      <div class="block">
+        <div class="block-label">⚠️ つまずきやすいポイント</div>
+        <div class="warn-box"><ul><li>初回の<code class="inline">git push</code>時、ブラウザが自動で開いてGitHubへのログインを求められることがある（Git Credential Managerという仕組み）。エラーではないので、そのままブラウザ側でログイン・許可すればよい。</li></ul></div>
+      </div>
+      <div class="block">
+        <div class="block-label">✅ 成果物</div>
+        <label class="deliverable" data-key="w4"><input type="checkbox"><span class="dtext">Terraformコード一式（oci-learning-logリポジトリの feature/add-subnets branchにpush）</span></label>
+        
+        <details class="sample-box">
+          <summary>💡 サンプルを見る</summary>
+          <div class="sample-content"><p>この時点でのフォルダ構成の例：</p>
+<pre>oci-learning-log/
+├── main.tf
+├── provider.tf
+├── variables.tf
+├── outputs.tf
+├── terraform.tfvars      (Gitには含めない)
+└── .gitignore</pre>
+<p><code class="inline">.gitignore</code>の中身の例：</p>
+<pre>*.tfstate
+*.tfstate.backup
+.terraform/
+terraform.tfvars</pre></div>
+        </details>
+      </div>
+      <div class="block">
+        <div class="block-label">🧭 到達判定</div>
+        <div class="criteria-box"><ul><li>mainに直接コミットせず、branch上で変更を進める理由を説明できる</li><li>.gitignoreに含めるべきファイルと、その理由を説明できる</li></ul></div>
+      </div>
+    </div>
+
+    <footer>
+      2026年度 SESインフラエンジニア育成ロードマップ（コースB：OCI限定コース（AWS資格を目指さない））｜チェックボックスの状態はこのブラウザに保存され、次回このページを開いたときも復元されます（進捗管理はPlannerで行ってください）
+    </footer>
+  </main>
+</div>
+<script>
+(function() {
+  const STORAGE_KEY = 'roadmap-checklist:courseB-2026-11';
+  let storageAvailable = true;
+  let saved = {};
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    saved = raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    storageAvailable = false;
+  }
+
+  function persist() {
+    if (!storageAvailable) return;
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+    } catch (e) {
+      storageAvailable = false;
+    }
+  }
+
+  const boxes = document.querySelectorAll('.deliverable input[type=checkbox]');
+  boxes.forEach(b => {
+    const label = b.closest('.deliverable');
+    const key = label ? label.getAttribute('data-key') : null;
+    if (key && saved[key]) {
+      b.checked = true;
+      label.classList.add('done');
+    }
+    b.addEventListener('change', () => {
+      label.classList.toggle('done', b.checked);
+      if (key) {
+        if (b.checked) {
+          saved[key] = true;
+        } else {
+          delete saved[key];
+        }
+        persist();
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>

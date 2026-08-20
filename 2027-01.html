@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>コースB：OCI限定コース（AWS資格を目指さない）｜1月：Terraform総合演習①</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">SES育成ロードマップ 2026年度</div>
+    <h1>コースB：OCI限定コース（AWS資格を目指さない）</h1>
+    <span class="course-badge b">SAA取得を目指さない</span>
+    <a class="back-index" href="index.html">← 目次（全7ヶ月）へ戻る</a>
+    <div class="nav-group-label">1月｜Terraform総合演習①</div>
+    <nav><a href="#w1"><span class="dot"></span>要件から考える3層設計</a><a href="#w2"><span class="dot"></span>サブネット構築</a><a href="#w3"><span class="dot"></span>Compute構築</a><a href="#w4"><span class="dot"></span>IAM設計＆障害対応演習</a></nav>
+    <div class="prevnext"><a href="2026-12.html">← 12月</a><a href="2027-02.html">2月 →</a></div>
+    <div class="nav-group-label">全体の月一覧</div>
+    <nav class="month-nav"><a href="2026-09.html"><span class="dot"></span>9月｜OCI基礎</a><a href="2026-10.html"><span class="dot"></span>10月｜OCIネットワーク</a><a href="2026-11.html"><span class="dot"></span>11月｜Terraform入門</a><a href="2026-12.html"><span class="dot"></span>12月｜Terraform実践</a><a href="2027-01.html" class="current"><span class="dot"></span>1月｜Terraform総合演習①</a><a href="2027-02.html"><span class="dot"></span>2月｜Terraform総合演習②</a><a href="2027-03.html"><span class="dot"></span>3月｜Terraform実務設計</a></nav>
+  </aside>
+  <main>
+    <div class="doc-header">
+      <div class="eyebrow">学習ロードマップ（詳細版）</div>
+      <h1>1月：Terraform総合演習①</h1>
+      <p class="sub">コースB：OCI限定コース（AWS資格を目指さない）</p>
+      <p class="lead">ここまで学んだ知識を組み合わせ、実務に近い3層アーキテクチャを構築します。OCIの正解手順を先に見るのではなく、要件だけを読んで自分で設計し、あとからOCIのベストプラクティスと比較して直す、という実務に近い順序で進めます。AWS資格は目指さないため、その分OCI IAMポリシーを深掘りします。</p>
+      <p class="practical"><b>💼 この月で実務的にできるようになること：</b>与えられた要件からPublic Subnet／Private Application Subnet／Private Database Subnetの3層構成を自分で設計し、設計理由を説明した上でTerraformコードとして構築できるようになります。あわせて動的グループ（Dynamic Group）や条件付きポリシーを使った実務レベルのOCI IAM設計、意図的な障害からの切り分け・復旧、変更をbranchで管理する流れも身につけます。</p>
+    </div>
+
+    <h2 class="section-title" id="glossary">📖 この月で出てくる用語</h2>
+    <table class="glossary">
+      <tr><th style="width:14%">用語</th><th style="width:28%">ひとことで言うと</th><th>もう少し詳しく</th></tr>
+      <tr><td class="term">3層アーキテクチャ</td><td class="short">Public Subnet／Private Application Subnet／Private Database Subnetの3層に分ける設計</td><td>外部公開する層（Public）、アプリが動く層（Private Application）、データを守る層（Private Database）を分離するのが定石。「DB層のCompute」ではなく「Database用途を想定したPrivate Subnet上のCompute」という理解で扱う</td></tr><tr><td class="term">動的グループ（Dynamic Group）</td><td class="short">Compute等のリソースをグループとして扱う仕組み</td><td>「特定のタグが付いたインスタンス」のようにルールでグループ分けし、そのグループにPolicyで権限を与えられる</td></tr><tr><td class="term">条件付きポリシー</td><td class="short">特定の条件下でのみ有効なポリシー</td><td><code class="inline">where</code>句を使って「特定のコンパートメントに対してのみ」のように絞り込める</td></tr>
+    </table>
+
+    <h2 class="section-title">週次タスク</h2>
+    
+    <div class="week" id="w1">
+      <div class="week-head"><span class="week-num">WEEK 01</span><span class="week-hours">目安 4h</span><h3>要件から考える3層アーキテクチャ設計</h3></div>
+      <div class="block">
+        <div class="block-label">🎯 このタスクのゴール</div>
+        <div class="goal-text">OCIの正解構成を先に見るのではなく、<b>要件だけを読んで自分で設計し、そのあとでOCIのベストプラクティスと比較して必要なら直す</b>、という順序で3層構成（Public Subnet／Private Application Subnet／Private Database Subnet）を設計する。12月までに構築済みのPublic/Private 2層構成（VCN・Subnet・Compute）はそのまま活かし、Private SubnetをDatabase用途として整理したうえで、新たにPrivate Application Subnetを設計に加える形にする。ゼロから作り直すわけではない。なお、10月にPrivate Subnet内に作成したCompute（10月Week4の任意演習で作成したもの）は、<b>存在する場合のみ</b>Database用途のComputeとしてそのまま引き継ぐ。10月Week4の任意演習を実施しておらず該当Computeが存在しない場合は、このComputeを前提とせずに設計を進めてよい。なお、Private Database Subnetに配置するのは実際のデータベース製品ではなく、Database層を想定したCompute（サーバー）である。</div>
+      </div>
+      <div class="block">
+        <div class="block-label">📋 与えられる要件（このまま自分で設計する）</div>
+        <ul style="margin:8px 0 0 0;padding-left:20px;line-height:1.9;font-size:14px;color:var(--ink);">
+          <li>WebサーバーはInternetからアクセス可能であること</li>
+          <li>ApplicationサーバーはInternetから直接アクセス不可であること</li>
+          <li>DatabaseサーバーはInternetから直接アクセス不可であること</li>
+          <li>ApplicationからDatabaseへの必要な通信のみ許可すること</li>
+          <li>Private SubnetからOSアップデートなど外部への通信は可能にすること</li>
+          <li>管理者はBastion経由でPrivate側へSSHできること（Bastion自体はPublic Subnetに置き、Private側への唯一のSSH入口として機能させる。Private Subnet宛のSSH（22番）はBastionからのみ許可し、Internet全体には公開しない）</li>
+          <li>SSHをInternet全体には公開しないこと</li>
+        </ul>
+      </div>
+      <div class="block">
+        <div class="block-label">📚 使う教材</div>
+        <ul class="materials"><li>OCI公式ドキュメント（Networking（ネットワーキング）／Architecture Center）※手順3で、自分の設計と比較する際に使う <a href="https://docs.oracle.com/ja-jp/iaas/Content/Network/Concepts/overview.htm" target="_blank" rel="noopener">https://docs.oracle.com/ja-jp/iaas/Content/Network/Concepts/overview.htm</a></li></ul>
+      </div>
+      <div class="block">
+        <div class="block-label">🛠 具体的な手順</div>
+        <ol class="steps"><li><b>OCIのドキュメントを見る前に、まず自分で設計する。</b>上記の要件を満たすため、Subnet（Public／Private Application／Private Database）・Route Table・Internet Gateway・NAT Gateway・NSG・Bastion・IAMをどう配置するかを自分で考える。12月時点の構成（VCN├Public Subnet└Compute、Private Subnetは10月作成のComputeが存在する場合はそれを1台含む）を土台にし、Private Application Subnetを新設して3層へ拡張する形で考えるとよい。</li><li>設計した構成図をdraw.ioまたは手書きで作成する。あわせて「なぜPublic Subnetにするのか」「なぜPrivate Application/Private Databaseを分けるのか」「なぜNAT Gatewayが必要なのか」「なぜそのNSGルールなのか」を、この時点の自分の理解で一度言葉にしてメモする。</li><li><b>OCI公式ドキュメントで答え合わせをする。</b>推奨されるネットワーク分離パターンを確認し、自分の設計と見比べる。異なる点があれば、なぜOCI側がそうしているのかを考え、必要に応じて設計図を修正する。一致していた部分もそのまま残してよい。</li><li>修正後の最終構成図を完成させる（Private Subnet内の既存Computeは「Database用途を想定したPrivate Subnet上のCompute」として位置づける）。</li></ol>
+      </div>
+      <div class="block">
+        <div class="block-label">✅ 成果物</div>
+        <label class="deliverable" data-key="w1"><input type="checkbox"><span class="dtext">①OCIドキュメントを見る前の初期設計メモ　②OCI比較後の最終構成図（draw.ioまたは手書き）　③設計理由の説明文（なぜそのSubnet分けか・なぜそのNSGルールか・代替案・セキュリティ上のメリデメ）。oci-learning-logリポジトリのimages/フォルダに保存する自分用メモでOK</span></label>
+        <details class="sample-box">
+          <summary>💡 設計理由メモの書き方（フォーマット例）</summary>
+          <div class="sample-content"><p>内容そのものではなく、書き方の型の例です（正解の構成図はここには書きません。まず自分で考えてください）：</p>
+<pre>■ なぜPublic Subnetをこの位置にしたか
+（要件のうち、どれを満たすためにこう配置したか）
+
+■ なぜPrivate Application SubnetとPrivate Database Subnetを分けたか
+（分けなかった場合と比べて何が変わるか）
+
+■ なぜそのNSGルールにしたか
+（許可した通信・拒否した通信とその理由）
+
+■ 検討した代替案と採用しなかった理由
+
+■ この設計のセキュリティ上のメリット・デメリット</pre></div>
+        </details>
+      </div>
+      <div class="block">
+        <div class="block-label">🧭 到達判定</div>
+        <div class="criteria-box"><ul><li>要件を満たすために、自分で3層構成（Public／Private Application／Private Database）を設計できる</li><li>OCI公式の推奨パターンと自分の設計を比較し、違いがあればその理由を説明できる</li></ul></div>
+      </div>
+    </div>
+    <div class="week" id="w2">
+      <div class="week-head"><span class="week-num">WEEK 02</span><span class="week-hours">目安 3.5h</span><h3>Public/Private Application/Private Databaseサブネット構築</h3></div>
+      <div class="block">
+        <div class="block-label">🎯 このタスクのゴール</div>
+        <div class="goal-text">修正後の設計をそのままTerraformコードに落とし込む。11月・12月に続き、mainに直接コミットせずbranch上で変更する。なお、Private Database Subnetに配置するのは実際のデータベース製品（MySQLやOracle Database等）ではなく、Database層を想定したCompute（サーバー）であることに注意する。</div>
+      </div>
+      <div class="block">
+        <div class="block-label">📚 使う教材</div>
+        <ul class="materials"><li>Terraform公式ドキュメント <a href="https://developer.hashicorp.com/terraform/docs" target="_blank" rel="noopener">https://developer.hashicorp.com/terraform/docs</a></li></ul>
+      </div>
+      <div class="block">
+        <div class="block-label">🛠 具体的な手順</div>
+        <ol class="steps"><li>PowerShellを開き、作業用フォルダに <code class="inline">cd</code> で移動してから、以降の操作を行う。</li><li><b>作業用のbranchを切る。</b> 今月の設計・構築は一連の変更としてbranch上で行う。<div class="cmd">git checkout -b feature/three-tier-design</div></li><li>WEEK01で修正した設計をTerraformコードに落とし込み、モジュール化はせずまず1ファイルにまとめる。<code class="inline">terraform fmt</code>で整形し<code class="inline">terraform validate</code>で文法チェックをしてからapplyする。</li><li><code class="inline">terraform plan</code>の出力を見て、要件（例：Private Database SubnetはInternetから直接到達できない設計になっているか）が意図通りコード化できているかを確認する。</li></ol>
+      </div>
+      <div class="block">
+        <div class="block-label">✅ 成果物</div>
+        <label class="deliverable" data-key="w2"><input type="checkbox"><span class="dtext">Terraformコード（3層構成のSubnet定義。oci-learning-logリポジトリのfeature/three-tier-design branchに保存し、apply確認）</span></label>
+        
+      </div>
+      <div class="block">
+        <div class="block-label">🧭 到達判定</div>
+        <div class="criteria-box"><ul><li>設計した3層構成をTerraformコードとして表現できる</li><li>Private Database SubnetがInternetから直接到達できない設計になっていることをplan出力から確認できる</li></ul></div>
+      </div>
+    </div>
+    <div class="week" id="w3">
+      <div class="week-head"><span class="week-num">WEEK 03</span><span class="week-hours">目安 3.5h</span><h3>Compute構築（Application層の追加［全員必須］とDB想定Computeのimport［存在する場合のみ］）</h3></div>
+      <div class="block">
+        <div class="block-label">🎯 このタスクのゴール</div>
+        <div class="goal-text">新設したPrivate Application SubnetにComputeをTerraformで構築し、踏み台構成の役割分担を整理することを、全員の必須到達点とする。あわせて、10月に手動作成したPrivate SubnetのDatabase用途Computeが存在する場合は、それをこれまでに書いたTerraformコードで管理できる状態にする（存在しない場合はこの部分の演習は不要）。</div>
+      </div>
+      <div class="block">
+        <div class="block-label">📚 使う教材</div>
+        <ul class="materials"><li>Terraform公式ドキュメント（<code class="inline">terraform import</code>のページ） <a href="https://developer.hashicorp.com/terraform/cli/import" target="_blank" rel="noopener">https://developer.hashicorp.com/terraform/cli/import</a></li></ul>
+      </div>
+      <div class="block">
+        <div class="block-label">🛠 具体的な手順</div>
+        <ol class="steps"><li>PowerShellを開き、作業用フォルダに <code class="inline">cd</code> で移動してから、以降の操作を行う（引き続きWEEK02の<code class="inline">feature/three-tier-design</code> branch上で作業する）。</li><li><b>（条件付き演習：10月Week4の任意演習を実施済みで、対象のPrivate SubnetのComputeが存在する場合のみ実施する。存在しない場合は手順2〜4を飛ばして手順5へ進む。）</b> 10月に手動作成したPrivate SubnetのCompute（<code class="inline">VM.Standard.E2.1.Micro</code>、Database用途）に対応する<code class="inline">oci_core_instance</code>リソースブロックをTerraformコードに書く（<code class="inline">display_name</code>や<code class="inline">shape</code>など、既存インスタンスの設定値をOCIコンソールで確認しながら合わせる）。</li><li><code class="inline">terraform import</code>で、書いたリソースブロックと実際のインスタンスを紐付ける（手動作成した既存リソースをTerraform管理下に置く操作）。実行するコマンドは次の形。<div class="cmd">terraform import oci_core_instance.db_instance ocid1.instance.oc1...（対象インスタンスのOCID）</div><code class="inline">oci_core_instance.db_instance</code>の部分は手順2で書いたリソースブロックの<code class="inline">"oci_core_instance" "db_instance"</code>に、OCIDはOCIコンソールのインスタンス詳細画面からコピーする。</li><li><code class="inline">terraform plan</code>を実行し、差分が出ないこと（＝コードと実物が一致していること）を確認する。差分が出た場合は、コード側の設定値（Shapeやサブネット等）が実際のインスタンスと食い違っているので、表示された差分を1つずつ実際の値に合わせて書き直す。</li><li><b>Private Application SubnetにComputeを新規構築する（全員必須）。</b> ただし、10月Week4のPrivate Computeが存在する場合は、新規作成前に整理すること。Public用・10月Private用・今回のApplication用でE2.1.Microが3台となり、Always Free上限（E2.1.Micro最大2台）を超える可能性があるため、不要な10月Week4のPrivate Computeは、手順2〜4でTerraform管理下に置いた<code class="inline">oci_core_instance.db_instance</code>を<b>Terraformコードとstateの両方から</b>削除する（コードのresourceブロックを削除したうえで<code class="inline">terraform plan</code>で削除対象を確認し、<code class="inline">terraform apply</code>で実体を削除する。OCIコンソールから直接削除すると、コード・stateには存在したままになり不整合が生じるため行わない）か、Always Free枠内に収まる別の構成に変更してから進める。10月Week4を実施しておらず該当Computeが存在しない場合は、従来どおりそのままApplication Computeを新規作成してよい。整理が完了したら、WEEK02で作成したPrivate Application Subnetに<code class="inline">oci_core_instance</code>リソースを新たに追加し（Shapeは<code class="inline">VM.Standard.E2.1.Micro</code>）、<code class="inline">terraform apply</code>で構築する。既存のDB想定Computeとは別インスタンスであることを確認する。</li><li>Public Subnet側のインスタンスを踏み台（Bastion）とし、Private側へのアクセス経路を整理する。基本は<code class="inline">ssh -J</code>によるProxyJumpを使う（Bastionに秘密鍵を置かずに済み、踏み台経由の接続先を1コマンドで指定できるため）。<div class="cmd">ssh -i .\ダウンロードした鍵ファイル.key -J ubuntu@Public側のIP ubuntu@Private側のIP</div>参考として<code class="inline">-A</code>オプション（エージェント転送）で2段階SSHする方法も試してよいが、こちらはBastion上のプロセスに自分の鍵の代理利用を許可する方式のため、Bastionが乗っ取られた場合のリスクがProxyJumpより大きい点に注意する。</li></ol>
+      </div>
+      <div class="block">
+        <div class="block-label">⚠️ つまずきやすいポイント</div>
+        <div class="warn-box"><ul><li>10月Week4の任意演習（NAT Gateway発展演習）を実施していない場合、import対象となる10月作成のPrivate SubnetのComputeが存在しない。その場合は、このimport演習はスキップして次の演習（Private Application SubnetへのCompute構築）へ進んでよい。新たにComputeを用意する必要はない。</li></ul></div>
+      </div>
+      <div class="block">
+        <div class="block-label">✅ 成果物</div>
+        <label class="deliverable" data-key="w3"><input type="checkbox"><span class="dtext">Terraformコード（Private Application SubnetへのCompute追加分は全員必須。10月作成のDB想定Computeが存在する場合はimport後のterraform stateも含める）。oci-learning-logリポジトリのfeature/three-tier-design branchに保存。差分なしを確認済み</span></label>
+        
+      </div>
+      <div class="block">
+        <div class="block-label">🧭 到達判定</div>
+        <div class="criteria-box"><ul><li>Private Application SubnetにComputeをTerraformで構築できる（全員必須）</li><li>10月作成のPrivate SubnetのComputeが存在する場合、terraform importで既存リソースをコード管理下に置き、差分なしの状態にできる</li><li>ProxyJumpによる踏み台経由のSSH接続を説明・実行できる</li></ul></div>
+      </div>
+    </div>
+    <div class="week" id="w4">
+      <div class="week-head"><span class="week-num">WEEK 04</span><span class="week-hours">目安 4h</span><h3>OCI IAM設計＆障害切り分け演習、branch push</h3></div>
+      <div class="block">
+        <div class="block-label">🎯 このタスクのゴール</div>
+        <div class="goal-text">9月に作った基本のIAM知識を発展させ、「要件→必要な権限→Policy」の順で考える実務的なIAM設計を体験する。あわせて、今月構築した3層構成に対して意図的な障害を起こし、自力で切り分けて復旧する総合演習を行う。</div>
+      </div>
+      <div class="block">
+        <div class="block-label">📚 使う教材</div>
+        <ul class="materials"><li>OCI公式ドキュメント（Dynamic Groups（グループ）／Policy Reference） <a href="https://docs.oracle.com/ja-jp/iaas/Content/Identity/Tasks/managingdynamicgroups.htm" target="_blank" rel="noopener">https://docs.oracle.com/ja-jp/iaas/Content/Identity/Tasks/managingdynamicgroups.htm</a></li></ul>
+      </div>
+      <div class="block">
+        <div class="block-label">🛠 具体的な手順（IAM設計）</div>
+        <ol class="steps"><li><b>要件から必要な権限を考える。</b>「Compute Instanceがオブジェクト・ストレージのapp-logsバケットにログを書き込めるようにしたいが、それ以外の操作はできないようにしたい」という要件を例に、まず「その要件を満たすために最低限必要な権限は何か」を先に自分の言葉で書き出す。いきなりPolicy文を書き始めない。</li><li>動的グループ（Dynamic Group）の概念を学び、Compute（コンピュート） InstanceをPrincipalとして扱うための条件式を、洗い出した要件に沿って作成する。</li><li>条件付きポリシー（<code class="inline">where</code>句）を使い、手順1で洗い出した権限だけに絞ったPolicyを作成する（「全リソースに対するmanage権限」のような広すぎる権限にしない）。</li><li>設計内容（要件→必要な権限→Policy文の順）をMarkdownでドキュメント化し、<code class="inline">study-notes</code>リポジトリに<code class="inline">2027-01-oci-iam-design.md</code>として保存してpushする。</li></ol>
+      </div>
+      <div class="block">
+        <div class="block-label">🧪 総合トラブルシュート演習</div>
+        <div class="goal-text">「Private Application SubnetのComputeから、Private Database SubnetのComputeへのTCP疎通（SSH＝22番ポートを使って確認）ができない」状態を意図的に作り、原因を自分で切り分けて復旧する。この演習で扱うのはあくまでPrivate Compute間のTCP疎通障害であり、DB（データベース）サービスそのものの障害ではない点に注意する（Database Subnet側のComputeは、DBサービスの稼働有無に関わらず、疎通確認の対象ホストとして扱う）。9〜12月のSSH／NAT Gatewayの演習とは別に、今月構築した3層構成そのものを対象にする。</div>
+        <ol class="steps"><li><b>正常な状態を確認しておく。</b> Bastion経由でPrivate Application SubnetのComputeに接続し、そこからPrivate Database SubnetのCompute宛に疎通確認（例：<code class="inline">nc -zv &lt;DB側のプライベートIP&gt; 22</code>）が通ることを確認しておく。</li><li><b>障害を発生させる(次の①②を、この順番で実施する)。</b> ①<b>まずNetwork/NSGレベルの障害を作る。</b> Private Database Subnet用のNSGのIngressルールから、Application Subnet側CIDR（またはApplication用NSG）を許可する行を削除する。同じ疎通確認コマンド（<code class="inline">nc -zv &lt;DB側のプライベートIP&gt; 22</code>）を再実行して失敗を確認したら、ルールを元に戻して復旧することを確認する。②<b>次にOS側（Serviceレベル）の障害を作る。</b> NSGは正常な状態のまま、Database Subnet側ComputeにSSHで接続し、<code class="inline">sudo systemctl stop ssh</code>を実行してSSHサービスそのものを停止する（すでに接続しているSSHセッションは保持したまま行う）。これは「OS Firewall（<code class="inline">ufw</code>等、通信の許可・拒否を制御する層）」ではなく「Service（サービスプロセス自体が起動しているかどうか）」の障害を再現するものである点に注意する。仮にOS Firewallの障害を再現したい場合は、<code class="inline">sudo ufw deny 22/tcp</code>のようにポート単位で拒否するのが対応する操作になるが、本演習ではService層（<code class="inline">systemctl stop ssh</code>）のみを扱う。同じ疎通確認コマンドを再実行し、NSGは正常なのにSSHサービス停止によって失敗することを確認する。</li><li><b>症状を確認する。</b> ①②それぞれについて、疎通確認コマンドが失敗することを確認する。</li><li><b>どの順番で確認したかを記録しながら切り分ける。</b> 「Client → Network(Route Table) → NSG → OS Firewall → Service」という切り分けの考え方に沿って、<code class="inline">ip route</code>・OCIコンソールのNSG設定確認・OS側の<code class="inline">sudo ufw status</code>（OS Firewall層の確認。本演習では正常のはず）・<code class="inline">systemctl status ssh</code>（Service層の確認）などを、確認した順番どおりに書き出す（「①まずNSGを疑って確認したが正常だった→②次にOS Firewall（ufw）を確認し、これも正常だった→③最後にServiceの状態（systemctl status ssh）を確認し、SSHサービスが停止していることが原因だと特定した」という形式）。同じ「通信できない」という症状でも、原因の階層（NSGか、OS Firewallか、Serviceか）によって確認すべき箇所が異なることを体験する。</li><li><b>原因を特定し、復旧する。</b> ①のNSGルールを、削除する前の状態（Application Subnet側CIDRまたはApplication用NSGを許可するIngressルール）に戻す。②のOS側は、保持しておいたSSHセッションから<div class="cmd">sudo systemctl start ssh</div>を実行してSSHサービスを起動し直す。続けて<div class="cmd">sudo systemctl status ssh</div>を実行し、<code class="inline">active (running)</code>と表示されることを確認する（<code class="inline">ufw</code>を止めていた場合は同様に<code class="inline">sudo ufw enable</code>等で元の状態に戻す）。最後に、Bastion経由のApplication側Computeから同じ疎通確認コマンド（<code class="inline">nc -zv &lt;DB側のプライベートIP&gt; 22</code>）を再実行し、①②のどちらも復旧して疎通が通ることを確認する。</li><li>「①発生させた障害の種類 ②確認した順番と分かったこと ③原因 ④復旧方法」を3〜5行程度でまとめ、<code class="inline">study-notes</code>リポジトリに<code class="inline">2027-01-troubleshoot.md</code>として保存し、pushする。</li></ol>
+      </div>
+      <div class="block">
+        <div class="block-label">🛠 branchのcommit・push</div>
+        <ol class="steps"><li>ここまでのTerraform変更（WEEK02〜03の3層構成、必要ならIAM関連のコード化分）を<code class="inline">feature/three-tier-design</code> branchでcommitし、pushする。<div class="cmd">git add .
+git commit -m "Add three-tier network and IAM design"
+git push -u origin feature/three-tier-design</div>このbranchのPull Request作成・レビュー・mainへのmergeは、3月にあらためて一連の流れとして扱う。</li></ol>
+      </div>
+      <div class="block">
+        <div class="block-label">✅ 成果物</div>
+        <label class="deliverable" data-key="w4"><input type="checkbox"><span class="dtext">OCI IAM設計ドキュメント（要件→権限→Policyの順でstudy-notesリポジトリにMarkdown保存）、トラブルシュート記録（2027-01-troubleshoot.md）、feature/three-tier-design branchへのpush</span></label>
+        
+        <details class="sample-box">
+          <summary>💡 サンプルを見る</summary>
+          <div class="sample-content"><p>OCI IAM設計ドキュメントの構成例（study-notesリポジトリの<code class="inline">2027-01-oci-iam-design.md</code>として保存するイメージ）：</p>
+<pre>## 要件
+- Compute InstanceがOCI Object Storageのapp-logsバケットに書き込みできるようにする
+- それ以外の操作は許可しない
+
+## 必要な権限（要件から洗い出し）
+- 「書き込み（オブジェクトの作成）」ができれば要件を満たす。読み取り・削除・一覧参照などは今回の要件には含まれないため付与しない
+- OCIのObject Storage Policy verbは4段階（inspect < read < use < manage）で、「作成」はreadより強い権限が必要なため、readでは要件を満たせない点に注意する
+- manage object-familyを丸ごと許可すると削除等も可能になり過剰なため、objectリソース種別＋permission指定で絞り込む
+
+## 動的グループ設計
+- グループ名: compute-dyn-group
+- 条件: instance.compartment.id = 'ocid1.compartment...'
+
+## 条件付きポリシー例
+Allow dynamic-group compute-dyn-group to manage objects
+  in compartment dev where all {target.bucket.name = 'app-logs',
+  request.permission = 'OBJECT_CREATE'}
+
+## 設計方針
+- 「全リソースに対するmanage権限」は使わず、必要なリソース種別・permissionだけに絞る
+- 「manage object-family」のような広い許可ではなく、対象バケットとrequest.permissionで書き込み用途だけに限定する
+- 本番/開発でコンパートメントを分離し、ポリシーもコンパートメント単位で管理する</pre></div>
+        </details>
+      </div>
+      <div class="block">
+        <div class="block-label">🧭 到達判定</div>
+        <div class="criteria-box"><ul><li>「要件→必要な権限→Policy」の順でIAM設計を進められる</li><li>動的グループと条件付きポリシーの役割を説明できる</li><li>Network／NSG／OS Firewall／Serviceの階層に沿って通信障害を切り分け、復旧できる</li></ul></div>
+      </div>
+    </div>
+
+    <footer>
+      2026年度 SESインフラエンジニア育成ロードマップ（コースB：OCI限定コース（AWS資格を目指さない））｜チェックボックスの状態はこのブラウザに保存され、次回このページを開いたときも復元されます（進捗管理はPlannerで行ってください）
+    </footer>
+  </main>
+</div>
+<script>
+(function() {
+  const STORAGE_KEY = 'roadmap-checklist:courseB-2027-01';
+  let storageAvailable = true;
+  let saved = {};
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    saved = raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    storageAvailable = false;
+  }
+
+  function persist() {
+    if (!storageAvailable) return;
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+    } catch (e) {
+      storageAvailable = false;
+    }
+  }
+
+  const boxes = document.querySelectorAll('.deliverable input[type=checkbox]');
+  boxes.forEach(b => {
+    const label = b.closest('.deliverable');
+    const key = label ? label.getAttribute('data-key') : null;
+    if (key && saved[key]) {
+      b.checked = true;
+      label.classList.add('done');
+    }
+    b.addEventListener('change', () => {
+      label.classList.toggle('done', b.checked);
+      if (key) {
+        if (b.checked) {
+          saved[key] = true;
+        } else {
+          delete saved[key];
+        }
+        persist();
+      }
+    });
+  });
+})();
+</script>
+</body>
+</html>
