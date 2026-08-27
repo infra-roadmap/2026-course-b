@@ -109,6 +109,10 @@
         <div class="goal-text">自分専用の仮想ネットワークを作り、その中に無料のサーバーを1台立てて実際にログインする。</div>
       </div>
       <div class="block">
+        <div class="block-label">📖 VCN・Subnetとは</div>
+        <div class="goal-text">VCN（Virtual Cloud Network）は、OCI上に自分専用に作る仮想ネットワーク全体の土台・入れ物で、AWSでいうVPCにあたる。この中にサーバーなどのリソースを配置していく。Subnetは、そのVCNの中を用途や公開範囲に応じて区切ったネットワークの区画で、たとえば「インターネットから直接アクセスできる区画（パブリック・サブネット）」と「外部から直接アクセスできない区画（プライベート・サブネット）」のように使い分ける。まずは「VCN＝ネットワーク全体の枠、Subnet＝その中の区画」という関係をおさえておけば十分で、CIDRなどの詳しい設計は10月に扱う。</div>
+      </div>
+      <div class="block">
         <div class="block-label">📚 使う教材</div>
         <ul class="materials"><li>OCI公式ドキュメント（ネットワーキング／コンピュートのページ） <a href="https://docs.oracle.com/ja-jp/iaas/Content/Network/Concepts/overview.htm" target="_blank" rel="noopener">https://docs.oracle.com/ja-jp/iaas/Content/Network/Concepts/overview.htm</a></li><li>Zenn「Oracle Cloud (OCI) でインスタンス作成からVCN設定・OSのポート解放まで」 <a href="https://zenn.dev/wyuma/articles/5fce8ef5042303" target="_blank" rel="noopener">https://zenn.dev/wyuma/articles/5fce8ef5042303</a></li></ul>
       </div>
@@ -150,7 +154,7 @@ journalctl -u ssh -n 50</div><code class="inline">systemctl status ssh</code>で
       </div>
       <div class="block">
         <div class="block-label">🛠 具体的な手順</div>
-        <ol class="steps"><li><b>GitHubアカウントを作る（未作成の場合）。</b> <a href="https://github.com/" target="_blank" rel="noopener">https://github.com/</a> の「Sign up」からメールアドレス・パスワード・ユーザー名を登録する（無料）。</li><li>テナンシー→コンパートメント→VCN→Subnet→Compute（コンピュート）の階層を箱と矢印で表現する。</li><li>今月学んだ用語（本ページ冒頭の用語集）を自分の言葉で1行ずつ説明できるか確認し、書き直してみる。</li><li><code class="inline">oci-learning-log</code>リポジトリを作り、README.mdに図と説明を掲載してpushする。</li><li><b>構築結果を文章で説明する。</b> 図だけでなく、「何を」「なぜその構成にしたか」を3〜5行程度の文章で説明する。読み手は、来月からこのプロジェクトに加わる後輩など、図の背景を知らない人を想定する。例えば「コンパートメントを分けたのはなぜか」「Always Free枠のShapeをわざわざ選び直したのはなぜか」など、単なる手順の再掲ではなく、判断の理由が伝わる説明を意識する。図だけでは伝わらない「なぜ」を言葉にする練習は、実務でのレビュー依頼や引き継ぎ資料でもそのまま使える。README.mdの図の下に追記し、pushする。</li></ol>
+        <ol class="steps"><li><b>9月第1週で作成したGitHubアカウントでGitHubにログインする。</b> <a href="https://github.com/" target="_blank" rel="noopener">https://github.com/</a> を開き、<code class="inline">study-notes</code>リポジトリを作成した際のアカウントでログインしておく（すでにログイン済みならこの手順は不要）。</li><li>テナンシー→コンパートメント→VCN→Subnet→Compute（コンピュート）の階層を箱と矢印で表現する。</li><li>今月学んだ用語（本ページ冒頭の用語集）を自分の言葉で1行ずつ説明できるか確認し、書き直してみる。</li><li><code class="inline">study-notes</code>とは別に、<code class="inline">oci-learning-log</code>という名前で新しくリポジトリを作り（<code class="inline">study-notes</code>は学習メモ・対比表用、<code class="inline">oci-learning-log</code>は構成図やインフラのログ用と、用途の異なる別リポジトリとして使い分ける）、README.mdに図と説明を掲載してpushする。</li><li><b>構築結果を文章で説明する。</b> 図だけでなく、「何を」「なぜその構成にしたか」を3〜5行程度の文章で説明する。読み手は、来月からこのプロジェクトに加わる後輩など、図の背景を知らない人を想定する。例えば「コンパートメントを分けたのはなぜか」「Always Free枠のShapeをわざわざ選び直したのはなぜか」など、単なる手順の再掲ではなく、判断の理由が伝わる説明を意識する。図だけでは伝わらない「なぜ」を言葉にする練習は、実務でのレビュー依頼や引き継ぎ資料でもそのまま使える。README.mdの図の下に追記し、pushする。</li></ol>
       </div>
       <div class="block">
         <div class="block-label">✅ 成果物</div>
