@@ -129,10 +129,10 @@ icacls .\ダウンロードした鍵ファイル.key /grant:r "$($env:USERNAME):
       </div>
       <div class="block">
         <div class="block-label">🧪 トラブルシュート演習：SSH接続が壊れた原因を特定する</div>
-        <div class="goal-text">正常につながっていたSSH接続を意図的に壊し、LinuxコマンドとOCI側の設定確認の両方を使って原因を切り分け、自力で復旧する。</div>
-        <ol class="steps"><li><b>復旧用の接続を確保しておく。</b> 今つながっているSSH接続はそのままにして、別のPowerShellウィンドウ（またはタブ）をもう1つ開き、そちらでも同じ手順でComputeへSSH接続しておく。以降の作業はこの2つ目の接続を使う。</li><li><b>障害を起こす（次のどちらか1つを選ぶ）。</b> ①Compute（コンピュート）のVNICにアタッチされているNSGを開き、TCP 22番のIngressルールを一時的に削除する。②サーバー側（1つ目の接続）で<div class="cmd">sudo systemctl stop ssh</div>を実行し、SSHサービス自体を止める。どちらを選んだかをメモしておく。</li><li><b>症状を確認する。</b> 2つ目のPowerShellから改めて<code class="inline">ssh -i ...</code>で接続を試み、失敗することを確認する（1つ目の接続はまだ生きているため、以降の調査に使える）。</li><li><b>Linuxコマンドで切り分ける。</b> 生きている1つ目の接続から、以下を順番に実行して結果を確認する。<div class="cmd">systemctl status ssh
+        <div class="goal-text">正常につながっていたSSH接続を意図的に壊し、Linuxコマンドを使ってOS側（Serviceレベル）の原因を切り分け、自力で復旧する。</div>
+        <ol class="steps"><li><b>復旧用の接続を確保しておく。</b> 今つながっているSSH接続はそのままにして、別のPowerShellウィンドウ（またはタブ）をもう1つ開き、そちらでも同じ手順でComputeへSSH接続しておく。以降の作業はこの2つ目の接続を使う。</li><li><b>障害を起こす。</b> サーバー側（1つ目のSSH接続）で以下を実行し、SSHサービスを停止する。以降の調査・復旧はこの接続を使う。<div class="cmd">sudo systemctl stop ssh</div></li><li><b>症状を確認する。</b> 2つ目のPowerShellから、以下のコマンドで改めて接続を試みる。<div class="cmd">ssh -i .\ダウンロードした鍵ファイル.key ubuntu@サーバーのIPアドレス</div>SSH接続に失敗することを確認する（1つ目の接続はまだ生きているため、以降の調査に使える）。</li><li><b>Linuxコマンドで切り分ける。</b> 生きている1つ目の接続から、以下を順番に実行して結果を確認する。<div class="cmd">systemctl status ssh
 ss -lntp
-journalctl -u ssh -n 50</div><code class="inline">systemctl status ssh</code>でサービスの状態、<code class="inline">ss -lntp</code>で22番ポートがLISTENしているか、<code class="inline">journalctl -u ssh -n 50</code>で直近のログにエラーが出ていないかを確認する。②を選んだ場合はここで停止に気づけるはずで、①の場合はこの時点ではOS側は正常に見える。</li><li><b>OS側で異常が見えない場合はOCI側を疑う。</b> ①を選んだ場合、OCIコンソールでNSGのIngressルールを開き、22番が本当に削除されているかを確認する。「OS側は正常＝クラウド側の設定を疑う」という切り分けの考え方をここで体感する。</li><li><b>原因を特定し、復旧する。</b> ①の場合はNSGのIngressルールを元に戻す。②の場合は<code class="inline">sudo systemctl start ssh</code>でサービスを再開する。復旧後、2つ目の接続から再度SSH接続できることを確認する。</li><li><b>確認した順番を記録する。</b>「①何を確認したか→②何が分かったか→③次に何を確認したか→④原因→⑤復旧方法」の順で、3〜5行程度の箇条書きメモを作る。<code class="inline">study-notes</code>リポジトリに<code class="inline">2026-09-ssh-troubleshoot.md</code>として保存し、pushする。</li></ol>
+journalctl -u ssh -n 50</div><code class="inline">systemctl status ssh</code>でサービスの状態、<code class="inline">ss -lntp</code>で22番ポートがLISTENしているか、<code class="inline">journalctl -u ssh -n 50</code>で直近のログにエラーが出ていないかを確認する。SSHサービスが停止していることがここで確認できるはず。</li><li><b>原因を特定し、復旧する。</b> 生きている1つ目の接続から<div class="cmd">sudo systemctl start ssh</div>を実行してSSHサービスを再開する。復旧後、2つ目のPowerShellから再度SSH接続できることを確認する。</li><li><b>確認した順番を記録する。</b>「①何を確認したか→②何が分かったか→③次に何を確認したか→④原因→⑤復旧方法」の順で、3〜5行程度の箇条書きメモを作る。<code class="inline">study-notes</code>リポジトリに<code class="inline">2026-09-ssh-troubleshoot.md</code>として保存し、pushする。</li></ol>
       </div>
       <div class="block">
         <div class="block-label">✅ 成果物</div>
@@ -141,7 +141,7 @@ journalctl -u ssh -n 50</div><code class="inline">systemctl status ssh</code>で
       </div>
       <div class="block">
         <div class="block-label">🧭 到達判定</div>
-        <div class="criteria-box"><ul><li>systemctl status／ss -lntp／journalctlを使い、SSH接続不可の原因をOS側から切り分けられる</li><li>OS側が正常に見える場合はクラウド側（NSG等）の設定を疑う、という切り分けの考え方を説明できる</li></ul></div>
+        <div class="criteria-box"><ul><li>systemctl status／ss -lntp／journalctlを使い、SSH接続不可の原因をOS側から切り分けられる</li></ul></div>
       </div>
     </div>
     <div class="week" id="w4">
