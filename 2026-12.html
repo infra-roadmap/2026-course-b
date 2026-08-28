@@ -109,7 +109,7 @@
       </div>
       <div class="block">
         <div class="block-label">🛠 具体的な手順</div>
-        <ol class="steps"><li>PowerShell（またはコマンドプロンプト）を開く（スタートメニューで「PowerShell」と検索して起動。普段VS Codeを使っているなら内蔵のターミナル機能でもよい）。作業用フォルダに <code class="inline">cd</code> コマンドで移動してから、以降の操作を行う。</li><li><code class="inline">data "oci_identity_availability_domains" "ads" {}</code>のようなdata sourceを定義し、可用性ドメインの一覧を取得する。</li><li>取得した値を使って<code class="inline">oci_core_instance</code>リソースを記述する。Shapeは9月week3で手動作成していたインスタンス（10月着手前にすでに削除済み）と同じ<code class="inline">VM.Standard.A1.Flex</code>にするが、WEEK04で2台目を追加してもAlways Free枠（合計2 OCPU・12GB）に収まるよう、1台目は1 OCPU・6GBに変更する。9月分のComputeはすでに削除済みで、10月の手動Compute（E2.1.Micro）ともシェイプ・枠が別のため、Ampere A1のAlways Free枠は今回のTerraform applyのためにそのまま使える。</li><li><code class="inline">terraform fmt</code>と<code class="inline">terraform validate</code>でコードを整形・検証してから、<code class="inline">terraform apply</code>でVCN〜Compute（コンピュート）までを一連の実行で構築できることを確認する。</li></ol>
+        <ol class="steps"><li>PowerShell（またはコマンドプロンプト）を開く（スタートメニューで「PowerShell」と検索して起動。普段VS Codeを使っているなら内蔵のターミナル機能でもよい）。作業用フォルダに <code class="inline">cd</code> コマンドで移動してから、以降の操作を行う。</li><li><code class="inline">data "oci_identity_availability_domains" "ads" {}</code>のようなdata sourceを定義し、可用性ドメインの一覧を取得する。</li><li><b>Terraform apply前に、10月から使い続けている手動のCompute（Public Subnet、<code class="inline">VM.Standard.E2.1.Micro</code>）をOCIコンソールから削除する。</b> このあとTerraformで作成するComputeも同じE2.1.Microを使うため、手動作成分を残したままだと、テナンシー全体でのE2.1.Micro上限（最大2台）に抵触しうる。先に手動分を片付けてからapplyする。</li><li>取得した値を使って<code class="inline">oci_core_instance</code>リソースを記述する（<code class="inline">subnet_id</code>には11月に構築したTerraform管理VCNのPublic Subnetを指定する）。Shapeは、直前に削除した10月の手動Computeと同じ<code class="inline">VM.Standard.E2.1.Micro</code>にする。これにより「手動で作ったComputeを、同じ内容のままTerraformコードとして再構築する」という移行の流れを体験する。</li><li><code class="inline">terraform fmt</code>と<code class="inline">terraform validate</code>でコードを整形・検証してから、<code class="inline">terraform apply</code>でVCN〜Compute（コンピュート）までを一連の実行で構築できることを確認する。</li></ol>
       </div>
       <div class="block">
         <div class="block-label">✅ 成果物</div>
@@ -118,7 +118,7 @@
       </div>
       <div class="block">
         <div class="block-label">🧭 到達判定</div>
-        <div class="criteria-box"><ul><li>data sourceで取得した値を使ってComputeを構築できる</li></ul></div>
+        <div class="criteria-box"><ul><li>data sourceで取得した値を使ってComputeを構築できる</li><li>手動作成分を先に削除してからapplyする必要がある理由を説明できる</li></ul></div>
       </div>
     </div>
     <div class="week" id="w4">
@@ -133,7 +133,7 @@
       </div>
       <div class="block">
         <div class="block-label">🛠 具体的な手順</div>
-        <ol class="steps"><li><b>作業用のbranchを切る。</b> 11月に続き、変更はmainに直接コミットせずbranch上で行う。<div class="cmd">git checkout -b feature/second-instance</div></li><li><b>拡張演習：</b>WEEK03で構築したCompute（コンピュート）環境に、<code class="inline">variable</code>を使って2台目のインスタンスを追加する（<code class="inline">display_name</code>は1台目と別名にする）。2台目も<code class="inline">VM.Standard.A1.Flex</code>（1 OCPU・6GB）とし、1台目（1 OCPU・6GB）と合わせてAmpere A1のAlways Free枠（合計2 OCPU・12GB）に収める。<code class="inline">terraform fmt</code>→<code class="inline">terraform validate</code>で整形・検証したあと、<code class="inline">terraform plan</code>で追加分の差分だけが出ることを確認してから<code class="inline">apply</code>する。</li><li>動作確認ができたら、Always Free枠を使い切らないよう2台目は<code class="inline">terraform destroy</code>で削除しておく（variable定義自体はコードに残してOK）。</li><li><b>branch上でcommitし、pushする。</b><div class="cmd">git add .
+        <ol class="steps"><li><b>作業用のbranchを切る。</b> 11月に続き、変更はmainに直接コミットせずbranch上で行う。<div class="cmd">git checkout -b feature/second-instance</div></li><li><b>拡張演習：</b>WEEK03で構築したCompute（コンピュート）環境に、<code class="inline">variable</code>を使って2台目のインスタンスを追加する（<code class="inline">display_name</code>は1台目と別名にする）。2台目も同じ<code class="inline">VM.Standard.E2.1.Micro</code>とし、1台目と合わせてE2.1.MicroのAlways Free上限（テナンシー全体で最大2台）にちょうど収める。<code class="inline">terraform fmt</code>→<code class="inline">terraform validate</code>で整形・検証したあと、<code class="inline">terraform plan</code>で追加分の差分だけが出ることを確認してから<code class="inline">apply</code>する。</li><li>動作確認ができたら、Always Free枠を使い切らないよう2台目は<code class="inline">terraform destroy</code>で削除しておく（variable定義自体はコードに残してOK）。</li><li><b>branch上でcommitし、pushする。</b><div class="cmd">git add .
 git commit -m "Add second instance variable"
 git push -u origin feature/second-instance</div>このbranchのPull Request作成・レビュー・mainへのmergeは、1月以降にあらためて扱う。</li><li>この1ヶ月でつまずいた点を3つ書き出す。</li><li>「①今週学んだこと ②つまずいた点 ③来週への持ち越し」の3つの見出しで、5〜10行程度の箇条書きメモを作る（文章として整える必要はない）。<code class="inline">study-notes</code>リポジトリに<code class="inline">2026-12-terraform-review.md</code>として保存し、pushする。</li></ol>
       </div>
