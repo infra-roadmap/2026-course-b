@@ -129,10 +129,12 @@ icacls .\ダウンロードした鍵ファイル.key /grant:r "$($env:USERNAME):
       </div>
       <div class="block">
         <div class="block-label">🧪 トラブルシュート演習：SSH接続が壊れた原因を特定する</div>
-        <div class="goal-text">正常につながっていたSSH接続を意図的に壊し、Linuxコマンドを使ってOS側（Serviceレベル）の原因を切り分け、「SSHサービス停止」が原因であると特定したうえで自力で復旧する。</div>
-        <ol class="steps"><li><b>復旧用の接続を確保しておく。</b> 今つながっているSSH接続はそのままにして、別のPowerShellウィンドウ（またはタブ）をもう1つ開き、そちらでも同じ手順でComputeへSSH接続しておく。以降の作業はこの2つ目の接続を使う。</li><li><b>障害を起こす。</b> サーバー側（1つ目のSSH接続）で以下を実行し、SSHサービスを停止する。以降の調査・復旧はこの接続を使う。<div class="cmd">sudo systemctl stop ssh</div></li><li><b>症状を確認する。</b> 2つ目のPowerShellから、以下のコマンドで改めて接続を試みる。<div class="cmd">ssh -i .\ダウンロードした鍵ファイル.key ubuntu@サーバーのIPアドレス</div>SSH接続に失敗することを確認する（1つ目の接続はまだ生きているため、以降の調査に使える）。</li><li><b>Linuxコマンドで切り分ける。</b> 生きている1つ目の接続から、以下を順番に実行して結果を確認する。<div class="cmd">systemctl status ssh
+        <div class="goal-text">正常につながっていたSSH接続を意図的に壊し、Linuxコマンドを使ってOS側（設定ファイルレベル）の原因を切り分け、「sshd_configの構文エラーによるSSHサービスの起動失敗」が原因であると特定したうえで自力で復旧する。</div>
+        <ol class="steps"><li><b>復旧用の接続を確保しておく。</b> 今つながっているSSH接続はそのままにして、別のPowerShellウィンドウ（またはタブ）をもう1つ開き、そちらでも同じ手順でComputeへSSH接続しておく。以降の作業はこの2つ目の接続を使う。</li><li><b>障害を起こす。</b> サーバー側（1つ目のSSH接続）で以下を実行し、<code class="inline">sshd_config</code>に存在しないディレクティブを1行追加してから、SSHサービスを再起動する。以降の調査・復旧はこの接続を使う。<div class="cmd">sudo sed -i '1i ThisIsNotAValidDirective yes' /etc/ssh/sshd_config
+sudo systemctl restart ssh</div></li><li><b>症状を確認する。</b> 2つ目のPowerShellから、以下のコマンドで改めて接続を試みる。<div class="cmd">ssh -i .\ダウンロードした鍵ファイル.key ubuntu@サーバーのIPアドレス</div>SSH接続に失敗することを確認する（1つ目の接続はまだ生きているため、以降の調査に使える）。</li><li><b>Linuxコマンドで切り分ける。</b> 生きている1つ目の接続から、以下を順番に実行して結果を確認する。<div class="cmd">systemctl status ssh
 ss -lntp
-journalctl -u ssh -n 50</div><code class="inline">systemctl status ssh</code>でサービスの状態、<code class="inline">ss -lntp</code>で22番ポートがLISTENしているか、<code class="inline">journalctl -u ssh -n 50</code>で直近のログにエラーが出ていないかを、この順番で確認する。この3つの結果から、「SSHサービスが停止していることがSSH接続できない原因」と特定する。</li><li><b>原因を特定できたら、復旧する。</b> 生きている1つ目の接続から<div class="cmd">sudo systemctl start ssh</div>を実行してSSHサービスを再開する。<code class="inline">systemctl status ssh</code>を再実行し、SSHサービスが再開したことを確認したら、2つ目のPowerShellから同じSSHコマンド（<code class="inline">ssh -i .\ダウンロードした鍵ファイル.key ubuntu@サーバーのIPアドレス</code>）を再実行し、SSH接続できることを確認する。</li><li><b>確認した順番を記録する。</b>「①何を確認したか→②何が分かったか→③次に何を確認したか→④原因→⑤復旧方法」の順で、3〜5行程度の箇条書きメモを作る。<code class="inline">study-notes</code>リポジトリに<code class="inline">2026-09-ssh-troubleshoot.md</code>として保存し、pushする。</li></ol>
+journalctl -u ssh -n 50</div><code class="inline">systemctl status ssh</code>でサービスが<code class="inline">failed</code>状態になっていること、<code class="inline">ss -lntp</code>で22番ポートのLISTENが消えていること、<code class="inline">journalctl -u ssh -n 50</code>で直近のログに先ほど追加した構文エラー（<code class="inline">ThisIsNotAValidDirective</code>が不正なディレクティブである旨のエラー）がそのまま出力されていることを、この順番で確認する。この3つの結果から、「sshd_configの構文エラーによりSSHサービスの起動（再起動）に失敗していることがSSH接続できない原因」と特定する。</li><li><b>原因を特定できたら、復旧する。</b> 生きている1つ目の接続から、先ほど追加した行をsedで削除し、SSHサービスを再起動する。<div class="cmd">sudo sed -i '/ThisIsNotAValidDirective/d' /etc/ssh/sshd_config
+sudo systemctl restart ssh</div><code class="inline">systemctl status ssh</code>を再実行し、サービスが正常に起動（active/running）したことを確認したら、2つ目のPowerShellから同じSSHコマンド（<code class="inline">ssh -i .\ダウンロードした鍵ファイル.key ubuntu@サーバーのIPアドレス</code>）を再実行し、SSH接続できることを確認する。</li><li><b>確認した順番を記録する。</b>「①何を確認したか→②何が分かったか→③次に何を確認したか→④原因→⑤復旧方法」の順で、3〜5行程度の箇条書きメモを作る。<code class="inline">study-notes</code>リポジトリに<code class="inline">2026-09-ssh-troubleshoot.md</code>として保存し、pushする。</li></ol>
       </div>
       <div class="block">
         <div class="block-label">✅ 成果物</div>
@@ -141,7 +143,7 @@ journalctl -u ssh -n 50</div><code class="inline">systemctl status ssh</code>で
       </div>
       <div class="block">
         <div class="block-label">🧭 到達判定</div>
-        <div class="criteria-box"><ul><li><code class="inline">systemctl status</code>／<code class="inline">ss -lntp</code>／<code class="inline">journalctl</code>を順番に使い、SSH接続不可の原因が「SSHサービス停止」であることを自分で切り分けて説明できる</li><li>原因を特定したうえでSSHサービスを復旧し、再接続できることを確認できる</li></ul></div>
+        <div class="criteria-box"><ul><li><code class="inline">systemctl status</code>／<code class="inline">ss -lntp</code>／<code class="inline">journalctl</code>を順番に使い、SSH接続不可の原因が「sshd_configの構文エラーによるSSHサービスの起動失敗」であることを自分で切り分けて説明できる</li><li>原因を特定したうえでSSHサービスを復旧し、再接続できることを確認できる</li></ul></div>
       </div>
     </div>
     <div class="week" id="w4">
