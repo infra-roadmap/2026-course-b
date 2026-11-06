@@ -145,7 +145,7 @@ terraform validate</div><code class="inline">fmt</code>はファイルを自動�
       <div class="week-head"><span class="week-num">WEEK 03</span><span class="week-hours">目安 2.5h</span><h3>Variable、Output</h3></div>
       <div class="block">
         <div class="block-label">🎯 このタスクのゴール</div>
-        <div class="goal-text">CIDRやコンパートメントOCIDのような値を、コードの外に切り出して管理できるようにする。切り出したあとも<code class="inline">terraform plan</code>が「No changes」のままであることで、動作を変えずに整理できたことを確認する。</div>
+        <div class="goal-text">CIDRやコンパートメントOCIDのような値を、コードの外に切り出して管理できるようにする。切り出したあとも<code class="inline">terraform plan</code>が「No changes」のままであることで、動作を変えずに整理できたことを確認する。<br><br><b>なぜコードの外に切り出すのか（3つのメリット）</b><br>① <b>値の変更が1か所で済む。</b> いまはCIDRやOCIDが<code class="inline">provider.tf</code>と<code class="inline">main.tf</code>に直接書かれている。同じ値を使うコードが増えるほど、変更のたびに何か所も探して直すことになり、直し忘れも起きる。値を<code class="inline">terraform.tfvars</code>にまとめれば、直すのはここだけになる。<br>② <b>環境固有の値をコードから切り離せる。</b> テナンシーOCIDや秘密鍵のパスは自分の環境だけの値。コードから分けておけば、コードそのものは他の人や別の環境でも使い回せる（値の入ったtfvarsだけを差し替える）。<br>③ <b>来週のGit管理に備えられる。</b> 来週からコードをGitHubに置く。値がコードに埋め込まれたままだと、個人の環境の値までGitHubに載ってしまう。値をtfvarsに分けておけば、コードだけをGitに載せ、tfvarsは載せない、という管理ができる。</div>
       </div>
       <div class="block">
         <div class="block-label">📚 使う教材</div>
@@ -216,14 +216,34 @@ vcn_display_name = "tf-vcn"</pre>書き方は<code class="inline">変数名 = "�
   compartment_id = var.compartment_id
   cidr_block     = var.vcn_cidr_block
   display_name   = var.vcn_display_name
-}</pre>左側（<code class="inline">compartment_id</code>など）はVCNリソースの属性名で変えない。右側だけを<code class="inline">var.変数名</code>に変える。</li><li><b>切り出しが正しくできたか確認する。</b> 次を順に実行する。<div class="cmd">terraform fmt
-terraform validate
-terraform plan</div><code class="inline">validate</code>が<code class="inline">Success! The configuration is valid.</code>になり、<code class="inline">plan</code>が手順2と同じ<code class="inline">No changes. Your infrastructure matches the configuration.</code>になれば成功。「値の置き場所を変えただけで、中身は何も変わっていない」ことがplanで証明できる。<br>・<code class="inline">-/+</code>や<code class="inline">must be replaced</code>、<code class="inline">~</code>の差分が出た場合：tfvarsの値が、最初にapplyしたときの値と違っている。<b>applyせず</b>（VCNが作り直されるおそれがある）、<code class="inline">terraform state show oci_core_vcn.main</code>で実際の値を確認して、tfvarsを合わせ直す。<br>・<code class="inline">Enter a value:</code>と入力を求められた場合：tfvarsから値が渡っていない。<code class="inline">Ctrl+C</code>で中断し、tfvarsのファイル名と、変数名のスペルが宣言と一致しているかを確認する。</li><li><b>outputs.tfを作る（結果の出力）。</b> 次を実行して新規作成する。<div class="cmd">notepad outputs.tf</div>次の内容を書いて保存する。<pre>output "vcn_id" {
+}</pre>左側（<code class="inline">compartment_id</code>など）はVCNリソースの属性名で変えない。右側だけを<code class="inline">var.変数名</code>に変える。</li><li><b>切り出しが正しくできたか確認する。</b> 次の3つのコマンドを、1つずつ順に実行する。下は、成功したときの画面の例（緑の<code class="inline">PS C:\...&gt;</code>はPowerShellのプロンプトで、入力するのは白字のコマンド部分だけ）。<div style="background:#1e1e1e;color:#d4d4d4;font-family:Consolas,'Courier New',monospace;font-size:13px;line-height:1.6;padding:12px 16px;border-radius:6px;margin:8px 0;white-space:pre-wrap;word-break:break-all;overflow-x:auto;"><span style="color:#6ec16e;">PS C:\Users\&lt;ユーザー名&gt;\oci-learning-log&gt;</span> <span style="color:#fff;font-weight:bold;">terraform fmt</span>
+<span style="color:#6ec16e;">PS C:\Users\&lt;ユーザー名&gt;\oci-learning-log&gt;</span> <span style="color:#fff;font-weight:bold;">terraform validate</span>
+<span style="color:#6ec16e;">Success! The configuration is valid.</span>
+
+<span style="color:#6ec16e;">PS C:\Users\&lt;ユーザー名&gt;\oci-learning-log&gt;</span> <span style="color:#fff;font-weight:bold;">terraform plan</span>
+<span style="color:#9a9a9a;">oci_core_vcn.main: Refreshing state... [id=ocid1.vcn.oc1.ap-tokyo-1.xxxx]</span>
+
+<span style="color:#6ec16e;">No changes. Your infrastructure matches the configuration.</span>
+
+<span style="color:#9a9a9a;">Terraform has compared your real infrastructure against your configuration
+and found no differences, so no changes are needed.</span></div><code class="inline">validate</code>が<code class="inline">Success! The configuration is valid.</code>になり、<code class="inline">plan</code>が手順2と同じ<code class="inline">No changes. Your infrastructure matches the configuration.</code>になれば成功（上の画面と同じ表示になる）。「値の置き場所を変えただけで、中身は何も変わっていない」ことがplanで証明できる。<br>・<code class="inline">-/+</code>や<code class="inline">must be replaced</code>、<code class="inline">~</code>の差分が出た場合：tfvarsの値が、最初にapplyしたときの値と違っている。<b>applyせず</b>（VCNが作り直されるおそれがある）、<code class="inline">terraform state show oci_core_vcn.main</code>で実際の値を確認して、tfvarsを合わせ直す。<br>・<code class="inline">Enter a value:</code>と入力を求められた場合：tfvarsから値が渡っていない。<code class="inline">Ctrl+C</code>で中断し、tfvarsのファイル名と、変数名のスペルが宣言と一致しているかを確認する。</li><li><b>outputs.tfを作る（結果の出力）。</b> 次を実行して新規作成する。<div class="cmd">notepad outputs.tf</div>次の内容を書いて保存する。<pre>output "vcn_id" {
   description = "OCID of the VCN"
   value       = oci_core_vcn.main.id
 }</pre><code class="inline">oci_core_vcn.main.id</code>は「<code class="inline">oci_core_vcn</code>の<code class="inline">main</code>という名前のリソースの、<code class="inline">id</code>（OCID）」を指す（Week 2で付けた名前<code class="inline">main</code>がここで使われる）。<br>保存したら、次を順に実行する。<div class="cmd">terraform fmt
 terraform validate
-terraform apply</div><code class="inline">apply</code>の確認を求められたら<code class="inline">yes</code>と入力する。出力を追加しただけなので、<code class="inline">Apply complete! Resources: 0 added, 0 changed, 0 destroyed.</code>と、その下の<code class="inline">Outputs:</code>に<code class="inline">vcn_id = "ocid1.vcn.oc1.ap-tokyo-1.xxxx"</code>のように表示されれば成功（リソースは何も変わらない）。表示されたOCIDが、OCIコンソールのVCN詳細画面のOCIDと一致することも確認する。<br>あとから値だけを見たいときは、次で再表示できる。<div class="cmd">terraform output vcn_id</div></li><li><b>変数の優先順位を体感する。</b> tfvarsは変更せず、コマンドで別の値を渡して、どちらが使われるかを確認する（PowerShellで次を実行）。<div class="cmd">terraform plan -var="vcn_display_name=tf-vcn-override"</div>表示された差分の中で、<code class="inline">display_name = "tf-vcn" -&gt; "tf-vcn-override"</code>のように、<code class="inline">-var</code>で渡した値に変わる予定になっていれば成功（<code class="inline">Plan: 0 to add, 1 to change, 0 to destroy.</code>）。tfvarsには<code class="inline">tf-vcn</code>と書いてあるのに、<code class="inline">-var</code>の値が優先されたことが分かる。これは確認だけなので、<b>applyはしない</b>。確認後、<code class="inline">terraform plan</code>（<code class="inline">-var</code>なし）を実行し、<code class="inline">No changes.</code>に戻ることを確認する。優先順位は、弱い順に「default → 環境変数<code class="inline">TF_VAR_名前</code> → terraform.tfvars → *.auto.tfvars → <code class="inline">-var</code>／<code class="inline">-var-file</code>」で、後に書いたものが勝つ。CI/CDや複数人開発で「どの値が実際に使われるか」を判断するときに必要な知識になる。</li><li><b>最後にファイルを確認する。</b> <code class="inline">dir *.tf*</code>を実行し、<code class="inline">main.tf</code>、<code class="inline">provider.tf</code>、<code class="inline">variables.tf</code>、<code class="inline">outputs.tf</code>、<code class="inline">terraform.tfvars</code>の5つがあることを確認する（<code class="inline">check.tf</code>は無くてよい）。</li></ol>
+terraform apply</div><code class="inline">apply</code>の確認を求められたら<code class="inline">yes</code>と入力する。出力を追加しただけなので、<code class="inline">Apply complete! Resources: 0 added, 0 changed, 0 destroyed.</code>と、その下の<code class="inline">Outputs:</code>に<code class="inline">vcn_id = "ocid1.vcn.oc1.ap-tokyo-1.xxxx"</code>のように表示されれば成功（リソースは何も変わらない）。表示されたOCIDが、OCIコンソールのVCN詳細画面のOCIDと一致することも確認する。<br>あとから値だけを見たいときは、次で再表示できる。<div class="cmd">terraform output vcn_id</div></li><li><b>同じ変数に複数の値があるとき、どれが使われるかを確認する（変数の優先順位）。</b> 変数の値は、<code class="inline">terraform.tfvars</code>のほかに、コマンドの<code class="inline">-var</code>オプションや環境変数でも渡せる。そのため、同じ変数に複数の値が渡されることがあり、そのときどれが使われるかにはルール（優先順位）がある。ここでは、<code class="inline">terraform.tfvars</code>には<code class="inline">vcn_display_name = "tf-vcn"</code>と書いたまま、コマンドで別の値<code class="inline">tf-vcn-override</code>を渡し、<b>どちらの値が使われるか</b>をplanで確かめる（PowerShellで次を実行）。<div style="background:#1e1e1e;color:#d4d4d4;font-family:Consolas,'Courier New',monospace;font-size:13px;line-height:1.6;padding:12px 16px;border-radius:6px;margin:8px 0;white-space:pre-wrap;word-break:break-all;overflow-x:auto;"><span style="color:#6ec16e;">PS C:\Users\&lt;ユーザー名&gt;\oci-learning-log&gt;</span> <span style="color:#fff;font-weight:bold;">terraform plan -var="vcn_display_name=tf-vcn-override"</span>
+<span style="color:#9a9a9a;">oci_core_vcn.main: Refreshing state... [id=ocid1.vcn.oc1.ap-tokyo-1.xxxx]</span>
+
+<span style="color:#9a9a9a;">Terraform will perform the following actions:</span>
+
+<span style="color:#9a9a9a;">  # oci_core_vcn.main will be updated in-place</span>
+  ~ resource "oci_core_vcn" "main" {
+<span style="color:#f0c674;">      ~ display_name = "tf-vcn" -&gt; "tf-vcn-override"</span>
+<span style="color:#9a9a9a;">        id           = "ocid1.vcn.oc1.ap-tokyo-1.xxxx"</span>
+<span style="color:#9a9a9a;">        # (他の項目は変更なし)</span>
+  }
+
+<span style="font-weight:bold;">Plan: 0 to add, 1 to change, 0 to destroy.</span></div>黄色の行のように<code class="inline">display_name = "tf-vcn" -&gt; "tf-vcn-override"</code>と表示され、<code class="inline">Plan: 0 to add, 1 to change, 0 to destroy.</code>になっていれば成功。tfvarsには<code class="inline">tf-vcn</code>と書いてあるのに、<code class="inline">-var</code>で渡した<code class="inline">tf-vcn-override</code>のほうが使われた（＝<code class="inline">-var</code>のほうが優先された）ことが分かる。これは確認だけなので、<b>applyはしない</b>（実行するとVCNの表示名が変わってしまう）。確認後、<code class="inline">terraform plan</code>（<code class="inline">-var</code>なし）をもう一度実行し、<code class="inline">No changes.</code>に戻ることを確認する。<br>優先順位は、弱い順に「default → 環境変数<code class="inline">TF_VAR_名前</code> → terraform.tfvars → *.auto.tfvars → <code class="inline">-var</code>／<code class="inline">-var-file</code>」で、後ろのものが勝つ。たとえば「普段はtfvarsの値を使い、一時的に別の値で試したいときだけ<code class="inline">-var</code>で上書きする」といった使い分けができ、実務では「いま実際にどの値が使われているのか」を判断するときに必要な知識になる。</li><li><b>最後にファイルを確認する。</b> <code class="inline">dir *.tf*</code>を実行し、<code class="inline">main.tf</code>、<code class="inline">provider.tf</code>、<code class="inline">variables.tf</code>、<code class="inline">outputs.tf</code>、<code class="inline">terraform.tfvars</code>の5つがあることを確認する（<code class="inline">check.tf</code>は無くてよい）。</li></ol>
       </div>
       <div class="block">
         <div class="block-label">⚠️ つまずきやすいポイント</div>
@@ -236,7 +256,7 @@ terraform apply</div><code class="inline">apply</code>の確認を求められ�
       </div>
       <div class="block">
         <div class="block-label">🧭 到達判定</div>
-        <div class="criteria-box"><ul><li>variables.tf／terraform.tfvars／var.変数名の3つが、それぞれ何をするものか説明できる</li><li>変数に切り出したあと、planが「No changes」になることで何が確認できるか説明できる</li><li>-varオプションで渡した値がtfvarsファイルより優先される、という変数の優先順位を説明できる</li></ul></div>
+        <div class="criteria-box"><ul><li>variables.tf／terraform.tfvars／var.変数名の3つが、それぞれ何をするものか説明できる</li><li>値をコードの外に切り出す理由（変更が1か所で済む、環境固有の値をコードから分離できる）を説明できる</li><li>変数に切り出したあと、planが「No changes」になることで何が確認できるか説明できる</li><li>-varオプションで渡した値がtfvarsファイルより優先される、という変数の優先順位を説明できる</li></ul></div>
       </div>
     </div>
     <div class="week" id="w4">
